@@ -1,5 +1,6 @@
-import { ICadEntity } from '../interfaces/ICadEntity';
+import { ICadEntity, Point2D } from '../interfaces/ICadEntity';
 import { ICommand } from '../interfaces/ICommand';
+import { WeldStampEntity } from '../entities/WeldStampEntity';
 
 export interface EntityRepository {
   add(entity: ICadEntity): void;
@@ -99,6 +100,41 @@ export class BatchCommand implements ICommand {
   public undo(): void {
     for (let i = this.commands.length - 1; i >= 0; i--) {
       this.commands[i].undo();
+    }
+  }
+}
+
+export class MoveLeaderAnchorCommand implements ICommand {
+  public readonly id: string;
+  public readonly timestamp = Date.now();
+  private readonly oldAnchor: Point2D;
+  private readonly newAnchor: Point2D;
+
+  constructor(
+    private readonly repo: EntityRepository,
+    private readonly entityId: string,
+    oldAnchor: Point2D,
+    newAnchor: Point2D,
+    public readonly label = 'Move Leader Anchor',
+  ) {
+    this.id = `cmd-anchor-${entityId}-${this.timestamp}`;
+    this.oldAnchor = { ...oldAnchor };
+    this.newAnchor = { ...newAnchor };
+  }
+
+  public execute(): void {
+    const ent = this.repo.getById(this.entityId);
+    if (ent instanceof WeldStampEntity) {
+      ent.leaderAnchor = { ...this.newAnchor };
+      this.repo.replace(ent);
+    }
+  }
+
+  public undo(): void {
+    const ent = this.repo.getById(this.entityId);
+    if (ent instanceof WeldStampEntity) {
+      ent.leaderAnchor = { ...this.oldAnchor };
+      this.repo.replace(ent);
     }
   }
 }

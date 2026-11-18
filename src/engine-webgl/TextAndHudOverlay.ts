@@ -54,6 +54,20 @@ export class TextAndHudOverlay {
       }
     }
 
+    // 1.5 Selection Grips for WeldStampEntity leader anchor endpoints
+    if (state.selectedIds.size > 0) {
+      for (const ent of state.entities) {
+        if (
+          ent instanceof WeldStampEntity &&
+          ent.visible &&
+          ent.hasLeader &&
+          state.selectedIds.has(ent.id)
+        ) {
+          this.drawSelectionGrip(ctx, ent.leaderAnchor, state.viewport);
+        }
+      }
+    }
+
     // 2. Selection Box (AutoCAD Blue Window vs Green Crossing)
     if (state.marqueeBox) {
       const s1 = worldToScreen(state.marqueeBox.start, state.viewport);
@@ -86,6 +100,23 @@ export class TextAndHudOverlay {
     if (state.showRulers) {
       this.drawRulers(ctx, state.viewport, state.pageDimensionsPt);
     }
+  }
+
+  private drawSelectionGrip(
+    ctx: CanvasRenderingContext2D,
+    worldPt: Point2D,
+    vp: ViewportTransform,
+  ): void {
+    const s = worldToScreen(worldPt, vp);
+    const size = 9;
+    const half = size * 0.5;
+    ctx.save();
+    ctx.fillStyle = '#22d3ee';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(s.x - half, s.y - half, size, size);
+    ctx.strokeRect(s.x - half, s.y - half, size, size);
+    ctx.restore();
   }
 
   private drawWeldStampLabels(

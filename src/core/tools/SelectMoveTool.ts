@@ -1,4 +1,10 @@
-import { RemoveEntityCommand, TranslateEntityCommand, BatchCommand } from '../commands/EntityCommands';
+import {
+  BatchCommand,
+  MoveLeaderAnchorCommand,
+  RemoveEntityCommand,
+  TranslateEntityCommand,
+} from '../commands/EntityCommands';
+import { WeldStampEntity } from '../entities/WeldStampEntity';
 import { BoundingBox, Point2D, RenderLinePrimitive } from '../interfaces/ICadEntity';
 import { ICadTool, ToolPointerEvent } from '../interfaces/ICadTool';
 import { boxContains, boxesOverlap } from '../math/GeometryIntersections';
@@ -10,6 +16,9 @@ export class SelectMoveTool implements ICadTool {
   public readonly cursor = 'default';
 
   private isDraggingEntities = false;
+  private draggingGripStampId: string | null = null;
+  private gripStartAnchor: Point2D | null = null;
+  private gripLastAnchor: Point2D | null = null;
   private isMarquee = false;
   private dragStart: Point2D | null = null;
   private dragLast: Point2D | null = null;
@@ -21,12 +30,51 @@ export class SelectMoveTool implements ICadTool {
   public onActivate(): void {}
   public onDeactivate(): void {
     this.isDraggingEntities = false;
+    this.draggingGripStampId = null;
+    this.gripStartAnchor = null;
+    this.gripLastAnchor = null;
     this.isMarquee = false;
     this.ctx.setMarqueeBox(null);
   }
 
+  private findLeaderAnchorGripHit(world: Point2D, gripTol: number): WeldStampEntity | null {
+    // Prefer already-selected stamps first
+    for (const id of this.ctx.getSelectedIds()) {
+      const ent = this.ctx.repo.getById(id);
+      if (ent instanceof WeldStampEntity && ent.visible && !ent.locked && ent.hasLeader) {
+        if (Math.hypot(world.x - ent.leaderAnchor.x, world.y - ent.leaderAnchor.y) <= gripTol) {
+          return ent;
+        }
+      }
+    }
+    // Also allow grabbing the leader tip directly on an unselected stamp
+    for (const ent of this.ctx.spatial.searchPoint(world, gripTol)) {
+      if (ent instanceof WeldStampEntity && ent.visible && !ent.locked && ent.hasLeader) {
+        if (Math.hypot(world.x - ent.leaderAnchor.x, world.y - ent.leaderAnchor.y) <= gripTol) {
+          return ent;
+        }
+      }
+    }
+    return null;
+  }
+
   public onPointerDown(evt: ToolPointerEvent): void {
-    const tol = 8 / Math.max(this.ctx.getZoom(), 0.1);
+    const zoom = Math.max(this.ctx.getZoom(), 0.1);
+    const tol = 8 / zoom;
+    const gripTol = 10 / zoom;
+
+    const gripStamp = this.findLeaderAnchorGripHit(evt.world, gripTol);
+    if (gripStamp) {
+      if (!this.ctx.getSelectedIds().has(gripStamp.id)) {
+        this.ctx.setSelectedIds(new Set([gripStamp.id]));
+      }
+      this.draggingGripStampId = gripStamp.id;
+      this.gripStartAnchor = { ...gripStamp.leaderAnchor };
+      this.gripLastAnchor = { ...gripStamp.leaderAnchor };
+      this.ctx.onRequestRender();
+      return;
+    }
+
     const candidates = this.ctx.spatial.searchPoint(evt.world, tol);
     const hit = candidates.find((e) => e.visible && !e.locked && e.hitTest(evt.world, tol));
 
@@ -58,6 +106,18 @@ export class SelectMoveTool implements ICadTool {
   }
 
   public onPointerMove(evt: ToolPointerEvent): void {
+    if (this.draggingGripStampId) {
+      const ent = this.ctx.repo.getById(this.draggingGripStampId);
+      if (ent instanceof WeldStampEntity && !ent.locked) {
+        const nextPt = evt.snapped ?? evt.world;
+        ent.leaderAnchor = { x: nextPt.x, y: nextPt.y };
+        this.gripLastAnchor = { ...ent.leaderAnchor };
+        this.ctx.spatial.update(ent);
+        this.ctx.onRequestRender();
+        return;
+      }
+    }
+
     if (this.isDraggingEntities && this.dragLast) {
       const dx = evt.world.x - this.dragLast.x;
       const dy = evt.world.y - this.dragLast.y;
@@ -83,6 +143,28 @@ export class SelectMoveTool implements ICadTool {
   }
 
   public onPointerUp(evt: ToolPointerEvent): void {
+    if (this.draggingGripStampId) {
+      const ent = this.ctx.repo.getById(this.draggingGripStampId);
+      const startAnchor = this.gripStartAnchor;
+      const finalAnchor = this.gripLastAnchor ?? evt.snapped ?? evt.world;
+      if (
+        ent instanceof WeldStampEntity &&
+        startAnchor &&
+        (Math.abs(finalAnchor.x - startAnchor.x) > 0.1 ||
+          Math.abs(finalAnchor.y - startAnchor.y) > 0.1)
+      ) {
+        ent.leaderAnchor = { ...startAnchor };
+        this.ctx.commands.execute(
+          new MoveLeaderAnchorCommand(this.ctx.repo, ent.id, startAnchor, finalAnchor),
+        );
+      }
+      this.draggingGripStampId = null;
+      this.gripStartAnchor = null;
+      this.gripLastAnchor = null;
+      this.ctx.onRequestRender();
+      return;
+    }
+
     if (this.isDraggingEntities) {
       this.isDraggingEntities = false;
       if (Math.abs(this.totalDx) > 0.1 || Math.abs(this.totalDy) > 0.1) {
