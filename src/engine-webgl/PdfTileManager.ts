@@ -1,6 +1,11 @@
 import * as pdfjsLib from 'pdfjs-dist';
-import { SnapPoint } from '../core/interfaces/ICadEntity';
+import { Point2D, SnapPoint } from '../core/interfaces/ICadEntity';
 import { PdfBackgroundTexture } from '../core/interfaces/IRenderEngine';
+
+export interface PdfVectorSegment {
+  p1: Point2D;
+  p2: Point2D;
+}
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
@@ -35,7 +40,11 @@ export class PdfTileManager {
   public async renderPageToTexture(
     pageNumber: number,
     renderScale = 2.5,
-  ): Promise<{ texture: PdfBackgroundTexture; vectorSnaps: SnapPoint[] }> {
+  ): Promise<{
+    texture: PdfBackgroundTexture;
+    vectorSnaps: SnapPoint[];
+    vectorSegments: PdfVectorSegment[];
+  }> {
     if (!this.pdfDoc) throw new Error('No PDF document loaded');
     const page = await this.pdfDoc.getPage(pageNumber);
     const baseVp = page.getViewport({ scale: 1.0 });
@@ -51,7 +60,10 @@ export class PdfTileManager {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
-    const vectorSnaps = await this.extractVectorSnaps(page, baseVp.height);
+    const { snaps: vectorSnaps, segments: vectorSegments } = await this.extractVectorGeometry(
+      page,
+      baseVp.height,
+    );
 
     this.versionCounter += 1;
     return {
@@ -63,18 +75,20 @@ export class PdfTileManager {
         version: this.versionCounter,
       },
       vectorSnaps,
+      vectorSegments,
     };
   }
 
   /**
-   * Extracts vector line endpoints and midpoints directly from PDF operator list
-   * so OSNAP can snap precisely onto piping isometric lines!
+   * Extracts vector line endpoints, midpoints, and segments directly from PDF operator list
+   * so OSNAP and Auto-Stamp can snap precisely onto piping isometric lines!
    */
-  private async extractVectorSnaps(
+  private async extractVectorGeometry(
     page: pdfjsLib.PDFPageProxy,
     pageHeightPt: number,
-  ): Promise<SnapPoint[]> {
+  ): Promise<{ snaps: SnapPoint[]; segments: PdfVectorSegment[] }> {
     const snaps: SnapPoint[] = [];
+    const segments: PdfVectorSegment[] = [];
     try {
       const ops = await page.getOperatorList();
       const OPS = pdfjsLib.OPS;
@@ -96,6 +110,9 @@ export class PdfTileManager {
             } else if (op === OPS.lineTo && ci + 1 < coords.length) {
               const nx = coords[ci++];
               const ny = pageHeightPt - coords[ci++];
+              if (Math.hypot(nx - curX, ny - curY) > 0.25) {
+                segments.push({ p1: { x: curX, y: curY }, p2: { x: nx, y: ny } });
+              }
               snaps.push({ point: { x: nx, y: ny }, kind: 'END' });
               snaps.push({ point: { x: (curX + nx) * 0.5, y: (curY + ny) * 0.5 }, kind: 'MID' });
               curX = nx;
@@ -120,6 +137,6 @@ export class PdfTileManager {
     } catch {
       // Non-fatal if PDF has unusual path streams
     }
-    return snaps;
+    return { snaps, segments };
   }
 }

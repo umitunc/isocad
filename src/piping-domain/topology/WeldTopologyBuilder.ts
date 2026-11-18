@@ -1,4 +1,7 @@
 import { WeldStampEntity } from '../../core/entities/WeldStampEntity';
+import { Point2D, SnapPoint } from '../../core/interfaces/ICadEntity';
+import { distancePointToSegment } from '../../core/math/GeometryIntersections';
+import { VectorSegment2D } from '../../core/spatial/OsnapEngine';
 import { dnToInch, dnVal, parseThk } from '../parsers/MaterialNormalizer';
 import { CutItem, MTOItem, PipingPageContext, WeldJoint } from '../types/PipingModels';
 
@@ -156,21 +159,39 @@ export class WeldTopologyBuilder {
     return joints;
   }
 
-  public createStampsFromWeldLog(welds: WeldJoint[], pageHeight: number): WeldStampEntity[] {
+  public createStampsFromWeldLog(
+    welds: WeldJoint[],
+    pageHeight: number,
+    vectorSegments: readonly VectorSegment2D[] = [],
+    vectorSnaps: readonly SnapPoint[] = [],
+  ): WeldStampEntity[] {
     const stamps: WeldStampEntity[] = [];
     for (const w of welds) {
       if (!w.anchorWorld) continue;
       const pageNum = Number.parseInt(w.sheetNo, 10) || 1;
       const isField = w.item1 === '-' || w.item2 === '-';
-      const offsetY = w.anchorWorld.y > pageHeight * 0.5 ? -44 : 44;
+      const anchorPt = this.snapWeldAnchorToPipeLine(w.anchorWorld, vectorSegments, vectorSnaps);
+
+      const dx = w.anchorWorld.x - anchorPt.x;
+      const dy = w.anchorWorld.y - anchorPt.y;
+      const dist = Math.hypot(dx, dy);
+      const offsetY = anchorPt.y > pageHeight * 0.5 ? -44 : 44;
+      const center: Point2D =
+        dist > 4
+          ? {
+              x: anchorPt.x + (dx / dist) * Math.max(48, dist + 24),
+              y: anchorPt.y + (dy / dist) * Math.max(48, dist + 24),
+            }
+          : { x: anchorPt.x + 38, y: anchorPt.y + offsetY };
+
       stamps.push(
         new WeldStampEntity({
           id: `auto-J-${w.jointNo}`,
           shapeKind: isField ? 'triangle' : 'circle',
-          center: { x: w.anchorWorld.x + 38, y: w.anchorWorld.y + offsetY },
+          center,
           width: 34,
           height: 34,
-          leaderAnchor: w.anchorWorld,
+          leaderAnchor: anchorPt,
           hasLeader: true,
           jointNo: String(w.jointNo),
           pageNumber: pageNum,
@@ -193,6 +214,88 @@ export class WeldTopologyBuilder {
       );
     }
     return stamps;
+  }
+
+  /**
+   * Resolves a weld callout number's text position onto the actual pipe line weld point
+   * by following the PDF's leader segment or snapping to nearby pipe vector geometry.
+   */
+  private snapWeldAnchorToPipeLine(
+    numberPos: Point2D,
+    segments: readonly VectorSegment2D[],
+    snaps: readonly SnapPoint[],
+  ): Point2D {
+    if (segments.length > 0) {
+      let bestFarPt: Point2D | null = null;
+      let bestScore = Infinity;
+
+      for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        const segLen = Math.hypot(seg.p2.x - seg.p1.x, seg.p2.y - seg.p1.y);
+        if (segLen < 6 || segLen > 80) continue;
+
+        const d1 = Math.hypot(seg.p1.x - numberPos.x, seg.p1.y - numberPos.y);
+        const d2 = Math.hypot(seg.p2.x - numberPos.x, seg.p2.y - numberPos.y);
+        const nearDist = Math.min(d1, d2);
+        const farDist = Math.max(d1, d2);
+        if (nearDist > 14 || farDist < 9 || farDist > 80) continue;
+
+        const farPt = d1 <= d2 ? seg.p2 : seg.p1;
+
+        // Prefer leader endpoints that land directly on another pipe segment
+        let touchesPipe = false;
+        for (let j = 0; j < segments.length; j++) {
+          if (i === j) continue;
+          const other = segments[j];
+          const otherLen = Math.hypot(other.p2.x - other.p1.x, other.p2.y - other.p1.y);
+          if (otherLen < 10) continue;
+          if (distancePointToSegment(farPt, other.p1, other.p2).distance <= 2.5) {
+            touchesPipe = true;
+            break;
+          }
+        }
+
+        const score = nearDist - (touchesPipe ? 20 : 0);
+        if (score < bestScore) {
+          bestScore = score;
+          bestFarPt = farPt;
+        }
+      }
+
+      if (bestFarPt) {
+        return { ...bestFarPt };
+      }
+
+      // Fallback: project onto nearest long pipe segment within 45pt
+      let bestProj: Point2D | null = null;
+      let bestProjDist = 45;
+      for (const seg of segments) {
+        const segLen = Math.hypot(seg.p2.x - seg.p1.x, seg.p2.y - seg.p1.y);
+        if (segLen < 15) continue;
+        const res = distancePointToSegment(numberPos, seg.p1, seg.p2);
+        if (res.distance > 4 && res.distance < bestProjDist) {
+          bestProjDist = res.distance;
+          bestProj = res.closest;
+        }
+      }
+      if (bestProj) {
+        return { ...bestProj };
+      }
+    }
+
+    // Secondary fallback: nearest END snap point outside the number's own circle
+    let bestSnap: Point2D | null = null;
+    let bestSnapDist = 55;
+    for (const sp of snaps) {
+      if (sp.kind !== 'END') continue;
+      const d = Math.hypot(sp.point.x - numberPos.x, sp.point.y - numberPos.y);
+      if (d >= 9 && d < bestSnapDist) {
+        bestSnapDist = d;
+        bestSnap = sp.point;
+      }
+    }
+
+    return bestSnap ? { ...bestSnap } : { ...numberPos };
   }
 
   private expandFittings(fittings: MTOItem[]) {

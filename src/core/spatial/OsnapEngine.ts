@@ -14,13 +14,31 @@ const SNAP_PRIORITY: Record<SnapKind, number> = {
   NEA: 8,
 };
 
+export interface VectorSegment2D {
+  p1: Point2D;
+  p2: Point2D;
+}
+
 export class OsnapEngine implements ISnapProvider {
   private pdfSnapPoints: SnapPoint[] = [];
+  private pdfVectorSegments: VectorSegment2D[] = [];
 
   constructor(private readonly spatialIndex: SpatialIndex) {}
 
   public setPdfVectorSnaps(points: SnapPoint[]): void {
     this.pdfSnapPoints = points;
+  }
+
+  public getPdfVectorSnaps(): readonly SnapPoint[] {
+    return this.pdfSnapPoints;
+  }
+
+  public setPdfVectorSegments(segments: VectorSegment2D[]): void {
+    this.pdfVectorSegments = segments;
+  }
+
+  public getPdfVectorSegments(): readonly VectorSegment2D[] {
+    return this.pdfVectorSegments;
   }
 
   public findBestSnap(worldCursor: Point2D, options: SnapSearchOptions): SnapPoint | null {

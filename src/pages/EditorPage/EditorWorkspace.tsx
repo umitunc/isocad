@@ -187,10 +187,14 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
     async (pageNum: number) => {
       setLoadingPdf(true);
       try {
-        const { texture, vectorSnaps } = await pdfMgrRef.current.renderPageToTexture(pageNum, 2.5);
+        const { texture, vectorSnaps, vectorSegments } = await pdfMgrRef.current.renderPageToTexture(
+          pageNum,
+          2.5,
+        );
         pdfBgRef.current = texture;
         engineRef.current.activePage = pageNum;
         engineRef.current.osnap.setPdfVectorSnaps(vectorSnaps);
+        engineRef.current.osnap.setPdfVectorSegments(vectorSegments);
         useEditorStore.getState().setField('currentPage', pageNum);
         fitToScreen();
       } finally {
@@ -258,6 +262,8 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
     const stamps = analyzerRef.current.topologyBuilder.createStampsFromWeldLog(
       piping.welds,
       bg.heightPt,
+      engineRef.current.osnap.getPdfVectorSegments(),
+      engineRef.current.osnap.getPdfVectorSnaps(),
     );
     if (stamps.length === 0) {
       showToast('No spatial weld numbers found on drawing.');
