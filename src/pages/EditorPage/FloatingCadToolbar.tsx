@@ -100,6 +100,46 @@ function clamp(val: number, min: number, max: number): number {
   return Math.min(Math.max(val, min), Math.max(min, max));
 }
 
+/**
+ * Finds the minimum toolbar width (in px) where all wrapped items fit within
+ * `maxH` without vertical overflow/scrolling.
+ */
+function findMinWidthFittingHeight(
+  el: HTMLElement,
+  maxH: number,
+  minW: number,
+  maxW: number
+): number {
+  if (maxH <= 0 || minW >= maxW) return minW;
+
+  const prevWidth = el.style.width;
+  const prevMaxHeight = el.style.maxHeight;
+
+  try {
+    el.style.maxHeight = 'none';
+    el.style.width = `${minW}px`;
+    if (el.scrollHeight <= maxH) {
+      return minW;
+    }
+
+    let lo = minW;
+    let hi = maxW;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      el.style.width = `${mid}px`;
+      if (el.scrollHeight <= maxH) {
+        hi = mid;
+      } else {
+        lo = mid + 1;
+      }
+    }
+    return lo;
+  } finally {
+    el.style.width = prevWidth;
+    el.style.maxHeight = prevMaxHeight;
+  }
+}
+
 function loadToolbarLayout(): ToolbarLayoutState {
   try {
     const raw = localStorage.getItem(TOOLBAR_STORAGE_KEY);
@@ -162,12 +202,14 @@ export const FloatingCadToolbar: React.FC<FloatingCadToolbarProps> = ({
     if (parentW <= 0 || parentH <= 0) return candidate;
 
     const maxAllowedW = Math.max(MIN_TOOLBAR_WIDTH, parentW - VIEWPORT_PADDING * 2);
+    const maxAllowedH = Math.max(0, parentH - VIEWPORT_PADDING * 2);
+    const minAllowedW = findMinWidthFittingHeight(el, maxAllowedH, MIN_TOOLBAR_WIDTH, maxAllowedW);
     const nextWidth =
-      candidate.width !== null ? clamp(candidate.width, MIN_TOOLBAR_WIDTH, maxAllowedW) : null;
+      candidate.width !== null ? clamp(candidate.width, minAllowedW, maxAllowedW) : null;
 
     const rect = el.getBoundingClientRect();
     const effectiveW = Math.min(nextWidth ?? rect.width, maxAllowedW);
-    const effectiveH = rect.height;
+    const effectiveH = Math.min(rect.height, maxAllowedH);
 
     const nextX =
       candidate.x !== null
@@ -187,7 +229,17 @@ export const FloatingCadToolbar: React.FC<FloatingCadToolbarProps> = ({
   };
 
   useLayoutEffect(() => {
-    if (!layout.visible || isInteracting) return;
+    if (!layout.visible) return;
+    if (isInteracting) {
+      const el = toolbarRef.current;
+      const parent = el?.parentElement;
+      if (!el || !parent || layout.y === null) return;
+      const maxY = Math.max(VIEWPORT_PADDING, parent.clientHeight - el.offsetHeight - VIEWPORT_PADDING);
+      if (layout.y > maxY) {
+        setLayout((prev) => (prev.y !== null && prev.y > maxY ? { ...prev, y: Math.round(maxY) } : prev));
+      }
+      return;
+    }
     const clamped = clampLayoutToParent(layout);
     const changed =
       clamped.x !== layout.x || clamped.y !== layout.y || clamped.width !== layout.width;
@@ -284,7 +336,18 @@ export const FloatingCadToolbar: React.FC<FloatingCadToolbarProps> = ({
     const lockedY = Math.round(layoutRef.current.y ?? rect.top - parentRect.top);
     const startWidth = rect.width;
     const startClientX = e.clientX;
-    const maxWidth = Math.max(MIN_TOOLBAR_WIDTH, parent.clientWidth - lockedX - VIEWPORT_PADDING);
+    const maxAllowedW = Math.max(MIN_TOOLBAR_WIDTH, parent.clientWidth - VIEWPORT_PADDING * 2);
+    const maxAllowedH = Math.max(0, parent.clientHeight - VIEWPORT_PADDING * 2);
+    const minWidthForHeight = findMinWidthFittingHeight(
+      el,
+      maxAllowedH,
+      MIN_TOOLBAR_WIDTH,
+      maxAllowedW
+    );
+    const maxWidth = Math.max(
+      minWidthForHeight,
+      parent.clientWidth - lockedX - VIEWPORT_PADDING
+    );
 
     setIsInteracting(true);
     const prevUserSelect = document.body.style.userSelect;
@@ -292,10 +355,13 @@ export const FloatingCadToolbar: React.FC<FloatingCadToolbarProps> = ({
 
     const onMove = (ev: PointerEvent) => {
       const dx = ev.clientX - startClientX;
-      const nextWidth = Math.round(clamp(startWidth + dx, MIN_TOOLBAR_WIDTH, maxWidth));
+      const nextWidth = Math.round(clamp(startWidth + dx, minWidthForHeight, maxWidth));
+      const nextX = Math.round(
+        clamp(lockedX, VIEWPORT_PADDING, parent.clientWidth - nextWidth - VIEWPORT_PADDING)
+      );
       setLayout((prev) => ({
         ...prev,
-        x: lockedX,
+        x: nextX,
         y: lockedY,
         width: nextWidth,
       }));
@@ -381,7 +447,7 @@ export const FloatingCadToolbar: React.FC<FloatingCadToolbarProps> = ({
       }}
       onMouseDown={(e) => e.stopPropagation()}
       onDoubleClick={handleResetPosition}
-      className="absolute z-20 flex flex-wrap items-center gap-1.5 rounded-2xl liquid-glass px-3 py-2 overflow-y-auto shadow-2xl cursor-grab active:cursor-grabbing"
+      className="absolute z-20 flex flex-wrap items-center gap-1.5 rounded-2xl liquid-glass px-3 py-2 overflow-hidden shadow-2xl cursor-grab active:cursor-grabbing"
     >
       {/* Drawing & Stamp Tools */}
       <div className="flex flex-wrap items-center gap-1">
