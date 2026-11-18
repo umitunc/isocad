@@ -4,6 +4,8 @@ node_modules/
 # Build outputs
 dist/
 dist-lib/
+dist-electron/
+release/
 *.tsbuildinfo
 
 # Archives & deploy artifacts

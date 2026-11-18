@@ -13,6 +13,7 @@
     "autocad-alternative"
   ],
   "license": "MIT",
+  "author": "Trunçgil Teknoloji",
   "type": "module",
   "main": "./dist-lib/isocad.cdn.js",
   "module": "./dist-lib/isocad.es.js",
@@ -37,7 +38,13 @@
     "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.cdn.config.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:electron": "tsc -p tsconfig.electron.json && node -e \"require('fs').writeFileSync('dist-electron/package.json', JSON.stringify({type:'commonjs'}))\"",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && npm run build:electron && node -e \\\"require('child_process').spawn('npx', ['electron', 'dist-electron/main.js'], { stdio: 'inherit', shell: true, env: { ...process.env, VITE_DEV_SERVER_URL: 'http://localhost:5173' } })\\\"\"",
+    "electron:preview": "npm run build && npm run build:electron && electron dist-electron/main.js",
+    "dist:win": "npm run build && npm run build:electron && electron-builder --win",
+    "dist:appx": "npm run build && npm run build:electron && electron-builder --win appx",
+    "dist:dir": "npm run build && npm run build:electron && electron-builder --win --dir"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -64,9 +71,13 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^10.0.7",
+    "electron": "^45.3.4",
+    "electron-builder": "^26.18.0",
     "tailwindcss": "^4.0.9",
     "typescript": "^5.7.3",
     "vite": "^6.2.0",
-    "vitest": "^3.0.7"
+    "vitest": "^3.0.7",
+    "wait-on": "^9.5.1"
   }
 }

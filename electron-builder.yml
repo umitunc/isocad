@@ -1,0 +1,47 @@
+appId: com.truncgil.isocad
+productName: IsoCad
+copyright: Copyright © 2026 Trunçgil Teknoloji
+
+directories:
+  output: release/${version}
+  buildResources: build
+
+asar: true
+
+extraMetadata:
+  main: dist-electron/main.js
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - build/icon.png
+  - build/icon.ico
+
+win:
+  icon: build/icon.ico
+  target:
+    - target: appx
+      arch:
+        - x64
+    - target: nsis
+      arch:
+        - x64
+
+appx:
+  # Microsoft Partner Center -> App management -> Product identity değerleri ile güncelleyin:
+  identityName: TruncgilTeknoloji.IsoCad
+  publisher: CN=00000000-0000-0000-0000-000000000000
+  publisherDisplayName: Trunçgil Teknoloji
+  applicationId: IsoCad
+  backgroundColor: "#060913"
+  showNameOnTiles: true
+  languages:
+    - tr-TR
+    - en-US
+  addAutoLaunchExtension: false
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
