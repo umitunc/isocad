@@ -15,6 +15,7 @@ import { CadLayer } from '../../core/layers/LayerManager';
 import { ICadEntity } from '../../core/interfaces/ICadEntity';
 import { useLocaleStore } from '../../i18n/useLocaleStore';
 import { SampleManifestItem, useEditorStore } from '../../store/useEditorStore';
+import { StampPreviewSvg } from './StampPreviewSvg';
 
 interface RightInspectorSidebarProps {
   samples: SampleManifestItem[];
@@ -49,6 +50,7 @@ export const RightInspectorSidebar: React.FC<RightInspectorSidebarProps> = ({
     drawingType,
     activePdfUrl,
     editMode,
+    strokeColor,
     selectedSpool,
     selectedJoint,
     selectedWelder,
@@ -182,6 +184,15 @@ export const RightInspectorSidebar: React.FC<RightInspectorSidebarProps> = ({
                 </select>
               </div>
             )}
+
+            <div className="flex items-center justify-center rounded border border-slate-800/80 bg-slate-950/70 py-2">
+              <StampPreviewSvg
+                shapeKind="triangle"
+                color={strokeColor || '#ef4444'}
+                primaryLabel={selectedJoint ? `F${selectedJoint}` : 'F?'}
+                secondaryLabel={editMode === 'joints_welder' ? selectedWelder : ''}
+              />
+            </div>
 
             <button
               type="button"

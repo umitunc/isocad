@@ -7,7 +7,43 @@ import { RevCloudEntity } from '../entities/RevCloudEntity';
 import { Point2D, RenderLinePrimitive } from '../interfaces/ICadEntity';
 import { ICadTool, ToolPointerEvent } from '../interfaces/ICadTool';
 import { hexToRgba } from '../math/GeometryIntersections';
+import { routeAroundObstacles } from '../math/ObstacleRouter';
 import { ToolRuntimeContext } from './ToolContext';
+
+const DRAG_THRESHOLD_PX = 5;
+const TRACE_SAMPLE_PX = 4;
+const TRACE_SIMPLIFY_PX = 6;
+
+function perpendicularDistance(pt: Point2D, a: Point2D, b: Point2D): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return Math.hypot(pt.x - a.x, pt.y - a.y);
+  const t = Math.max(0, Math.min(1, ((pt.x - a.x) * dx + (pt.y - a.y) * dy) / lenSq));
+  return Math.hypot(pt.x - (a.x + t * dx), pt.y - (a.y + t * dy));
+}
+
+/** Ramer-Douglas-Peucker simplification to convert a dragged path into clean polyline breakpoints. */
+function simplifyPolyline(pts: Point2D[], epsilon: number): Point2D[] {
+  if (pts.length <= 2) return pts;
+  let maxDist = 0;
+  let maxIdx = 0;
+  const first = pts[0];
+  const last = pts[pts.length - 1];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const d = perpendicularDistance(pts[i], first, last);
+    if (d > maxDist) {
+      maxDist = d;
+      maxIdx = i;
+    }
+  }
+  if (maxDist > epsilon) {
+    const left = simplifyPolyline(pts.slice(0, maxIdx + 1), epsilon);
+    const right = simplifyPolyline(pts.slice(maxIdx), epsilon);
+    return [...left.slice(0, -1), ...right];
+  }
+  return [first, last];
+}
 
 export class PolylineTool implements ICadTool {
   public readonly name = 'polyline';
@@ -15,43 +51,120 @@ export class PolylineTool implements ICadTool {
   public readonly cursor = 'crosshair';
   private points: Point2D[] = [];
   private cursorPt: Point2D | null = null;
+  private routedPreview: Point2D[] = [];
+  private isPointerDown = false;
+  private downScreenPt: Point2D | null = null;
+  private isDraggingTrace = false;
+  private tracePoints: Point2D[] = [];
 
   constructor(private readonly ctx: ToolRuntimeContext) {}
 
-  public onActivate(): void {
+  private resetState(): void {
     this.points = [];
     this.cursorPt = null;
+    this.routedPreview = [];
+    this.isPointerDown = false;
+    this.downScreenPt = null;
+    this.isDraggingTrace = false;
+    this.tracePoints = [];
+  }
+
+  private computeRoutedSegment(from: Point2D, to: Point2D, bypassObstacles: boolean): Point2D[] {
+    if (bypassObstacles) return [from, to];
+    const padding = Math.max(4, 8 / Math.max(this.ctx.getZoom(), 0.25));
+    return routeAroundObstacles(
+      from,
+      to,
+      this.ctx.getAllEntities(),
+      this.ctx.getActivePage(),
+      padding,
+    );
+  }
+
+  public onActivate(): void {
+    this.resetState();
   }
   public onDeactivate(): void {
-    this.points = [];
-    this.cursorPt = null;
+    this.resetState();
   }
 
   public onPointerDown(evt: ToolPointerEvent): void {
-    const pt =
-      this.points.length > 0
-        ? this.ctx.osnap.applyAxisConstraint(
-            this.points[this.points.length - 1],
-            evt.snapped,
-            this.ctx.getSnapOptions(),
-          )
-        : evt.snapped;
-    this.points.push({ ...pt });
+    if (evt.button !== 0) return;
+    const prev = this.points.length > 0 ? this.points[this.points.length - 1] : null;
+    const pt = prev
+      ? this.ctx.osnap.applyAxisConstraint(prev, evt.snapped, this.ctx.getSnapOptions())
+      : evt.snapped;
+    this.isPointerDown = true;
+    this.downScreenPt = { ...evt.screen };
+    this.isDraggingTrace = false;
+    if (prev) {
+      const routed = this.computeRoutedSegment(prev, pt, evt.altKey);
+      this.points.push(...routed.slice(1).map((p) => ({ ...p })));
+    } else {
+      this.points.push({ ...pt });
+    }
+    this.tracePoints = [{ ...pt }];
     this.cursorPt = { ...pt };
+    this.routedPreview = [];
     this.ctx.onRequestRender();
   }
 
   public onPointerMove(evt: ToolPointerEvent): void {
+    if (this.isPointerDown && this.downScreenPt) {
+      if (!this.isDraggingTrace) {
+        const screenDist = Math.hypot(
+          evt.screen.x - this.downScreenPt.x,
+          evt.screen.y - this.downScreenPt.y,
+        );
+        if (screenDist >= DRAG_THRESHOLD_PX) {
+          this.isDraggingTrace = true;
+          this.cursorPt = null;
+          this.routedPreview = [];
+        }
+      }
+      if (this.isDraggingTrace) {
+        const minStepWorld = TRACE_SAMPLE_PX / Math.max(this.ctx.getZoom(), 0.1);
+        const last = this.tracePoints[this.tracePoints.length - 1];
+        if (!last || Math.hypot(evt.world.x - last.x, evt.world.y - last.y) >= minStepWorld) {
+          this.tracePoints.push({ ...evt.world });
+        }
+        this.ctx.onRequestRender();
+        return;
+      }
+    }
+
     if (this.points.length === 0) return;
+    const prev = this.points[this.points.length - 1];
     this.cursorPt = this.ctx.osnap.applyAxisConstraint(
-      this.points[this.points.length - 1],
+      prev,
       evt.snapped,
       this.ctx.getSnapOptions(),
     );
+    this.routedPreview = this.computeRoutedSegment(prev, this.cursorPt, evt.altKey);
     this.ctx.onRequestRender();
   }
 
-  public onPointerUp(): void {}
+  public onPointerUp(evt: ToolPointerEvent): void {
+    if (!this.isPointerDown) return;
+    this.isPointerDown = false;
+    this.downScreenPt = null;
+
+    if (!this.isDraggingTrace) return;
+    this.isDraggingTrace = false;
+
+    const last = this.tracePoints[this.tracePoints.length - 1];
+    if (!last || Math.hypot(evt.snapped.x - last.x, evt.snapped.y - last.y) > 0.5) {
+      this.tracePoints.push({ ...evt.snapped });
+    }
+
+    const epsilon = TRACE_SIMPLIFY_PX / Math.max(this.ctx.getZoom(), 0.1);
+    const simplified = simplifyPolyline(this.tracePoints, epsilon);
+    if (simplified.length >= 2) {
+      this.points.push(...simplified.slice(1));
+    }
+    this.tracePoints = [];
+    this.finish(false);
+  }
 
   public onDoubleClick(): void {
     this.finish(false);
@@ -61,8 +174,7 @@ export class PolylineTool implements ICadTool {
     if (key === 'Enter') this.finish(false);
     if (key === 'c' || key === 'C') this.finish(true);
     if (key === 'Escape') {
-      this.points = [];
-      this.cursorPt = null;
+      this.resetState();
       this.ctx.onRequestRender();
     }
   }
@@ -77,8 +189,7 @@ export class PolylineTool implements ICadTool {
       });
       this.ctx.commands.execute(new AddEntityCommand(this.ctx.repo, entity));
     }
-    this.points = [];
-    this.cursorPt = null;
+    this.resetState();
     this.ctx.onRequestRender();
   }
 
@@ -96,17 +207,35 @@ export class PolylineTool implements ICadTool {
         width: 2,
       });
     }
-    if (this.cursorPt) {
-      const last = this.points[this.points.length - 1];
-      out.push({
-        x1: last.x,
-        y1: last.y,
-        x2: this.cursorPt.x,
-        y2: this.cursorPt.y,
-        colorRgba,
-        width: 2,
-        dashPattern: [5, 4],
-      });
+    if (this.isDraggingTrace && this.tracePoints.length >= 2) {
+      const epsilon = TRACE_SIMPLIFY_PX / Math.max(this.ctx.getZoom(), 0.1);
+      const previewPts = simplifyPolyline(this.tracePoints, epsilon);
+      for (let i = 0; i < previewPts.length - 1; i++) {
+        out.push({
+          x1: previewPts[i].x,
+          y1: previewPts[i].y,
+          x2: previewPts[i + 1].x,
+          y2: previewPts[i + 1].y,
+          colorRgba,
+          width: 2,
+        });
+      }
+    } else if (this.cursorPt) {
+      const previewPts =
+        this.routedPreview.length >= 2
+          ? this.routedPreview
+          : [this.points[this.points.length - 1], this.cursorPt];
+      for (let i = 0; i < previewPts.length - 1; i++) {
+        out.push({
+          x1: previewPts[i].x,
+          y1: previewPts[i].y,
+          x2: previewPts[i + 1].x,
+          y2: previewPts[i + 1].y,
+          colorRgba,
+          width: 2,
+          dashPattern: [5, 4],
+        });
+      }
     }
     return out;
   }

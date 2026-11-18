@@ -4,6 +4,7 @@ import { WeldStampEntity } from '../../../core/entities/WeldStampEntity';
 import { useLocaleStore } from '../../../i18n/useLocaleStore';
 import { dnToInch, parseThk } from '../../../piping-domain/parsers/MaterialNormalizer';
 import { JointWidgetMeta, MTOItem } from '../../../piping-domain/types/PipingModels';
+import { StampPreviewSvg } from '../StampPreviewSvg';
 
 interface JointWidgetModalProps {
   stamp: WeldStampEntity | null;
@@ -92,7 +93,8 @@ export const JointWidgetModal: React.FC<JointWidgetModalProps> = ({
         </div>
 
         <div className="max-h-[75vh] overflow-y-auto p-5 space-y-4 text-xs">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex flex-col md:flex-row gap-4 items-stretch">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-slate-400 mb-1">{t.modal.typeOfJoint}</label>
               <input
@@ -151,6 +153,25 @@ export const JointWidgetModal: React.FC<JointWidgetModalProps> = ({
                 placeholder="W-104"
                 className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono"
               />
+            </div>
+            </div>
+
+            <div className="md:w-44 shrink-0 flex flex-col items-center justify-center rounded-lg border border-slate-800 bg-slate-950/70 p-3 gap-2">
+              <StampPreviewSvg
+                shapeKind={stamp.shapeKind}
+                color={stamp.strokeColor}
+                primaryLabel={
+                  stamp.shapeKind === 'rect'
+                    ? form.spoolNo1 || 'SPOOL'
+                    : form.drawJointNo || stamp.id
+                }
+                secondaryLabel={form.welderId}
+                width={132}
+                height={66}
+              />
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+                {stamp.shapeKind}
+              </span>
             </div>
           </div>
 

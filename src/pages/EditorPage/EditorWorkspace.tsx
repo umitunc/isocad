@@ -899,23 +899,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
             loadPdfFromUrl(s.url, s).then(() => persistState());
           }}
           onAddStampFromSidebar={() => {
-            const bg = pdfBgRef.current;
-            const cx = bg ? bg.widthPt * 0.45 : 300;
-            const cy = bg ? bg.heightPt * 0.45 : 300;
-            const stamp = new WeldStampEntity({
-              id: `J-${Date.now().toString().slice(-5)}`,
-              shapeKind: 'triangle',
-              center: { x: cx + 40, y: cy - 40 },
-              width: 40,
-              height: 40,
-              leaderAnchor: { x: cx, y: cy },
-              spoolNo: store.selectedSpool,
-              jointNo: store.selectedJoint,
-              welderId: store.editMode === 'joints_welder' ? store.selectedWelder : '',
-              pageNumber: store.currentPage,
-            });
-            engineRef.current.commands.execute(new AddEntityCommand(engineRef.current.repo, stamp));
-            requestRender();
+            engineRef.current.setTool('stamp_triangle');
           }}
           onToggleLayerVis={(id) => {
             engineRef.current.layers.toggleVisibility(id);

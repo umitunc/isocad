@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Download, Table2 } from 'lucide-react';
 import {
   SheetGL,
@@ -96,7 +96,7 @@ const READONLY_PERMISSIONS: GridPermissions = {
 };
 
 const READONLY_TOOLBAR: GridToolbarConfig = {
-  visible: true,
+  visible: false,
   buttonDisplayMode: 'icon',
   allowDisplayModeSwitch: false,
   showBrand: false,
@@ -154,6 +154,9 @@ const SUPPORT_COLUMNS: ColumnDef[] = [
   { id: 'quantity', title: 'Qty', type: 'number', width: 90, sortable: true, filterable: true, readonly: true, summaryType: 'sum' },
 ];
 
+const MIN_DRAWER_HEIGHT = 140;
+const DEFAULT_DRAWER_HEIGHT = 288;
+
 export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
   onFocusWorldPoint,
   onExportExcel,
@@ -161,6 +164,50 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
   const { t, locale } = useLocaleStore();
   const { theme } = useThemeStore();
   const { pipingData, drawerOpen, drawerTab, setField } = useEditorStore();
+  const [drawerHeight, setDrawerHeight] = useState(DEFAULT_DRAWER_HEIGHT);
+  const [isResizing, setIsResizing] = useState(false);
+  const cleanupResizeRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      cleanupResizeRef.current?.();
+    };
+  }, []);
+
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const startY = e.clientY;
+      const startHeight = drawerHeight;
+      setIsResizing(true);
+      const prevCursor = document.body.style.cursor;
+      document.body.style.cursor = 'ns-resize';
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const maxHeight = Math.max(240, window.innerHeight - 160);
+        const nextHeight = Math.min(
+          maxHeight,
+          Math.max(MIN_DRAWER_HEIGHT, startHeight + (startY - moveEvent.clientY)),
+        );
+        setDrawerHeight(nextHeight);
+      };
+
+      const cleanup = () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', cleanup);
+        document.body.style.cursor = prevCursor;
+        setIsResizing(false);
+        cleanupResizeRef.current = null;
+      };
+
+      cleanupResizeRef.current = cleanup;
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', cleanup);
+    },
+    [drawerHeight],
+  );
 
   const mtoCount = pipingData?.mto.length ?? 0;
   const weldCount = pipingData?.welds.length ?? 0;
@@ -214,6 +261,23 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
 
   return (
     <div className="border-t border-slate-800 bg-[#0b1120] text-slate-200 select-none">
+      {drawerOpen && (
+        <div
+          role="separator"
+          aria-orientation="horizontal"
+          onMouseDown={handleResizeStart}
+          className={`group flex h-1.5 w-full cursor-ns-resize items-center justify-center transition-colors ${
+            isResizing ? 'bg-cyan-500/40' : 'bg-slate-900/90 hover:bg-cyan-500/25'
+          }`}
+          title="Drag to resize height"
+        >
+          <div
+            className={`h-0.5 w-10 rounded-full transition-colors ${
+              isResizing ? 'bg-cyan-400' : 'bg-slate-700 group-hover:bg-cyan-400'
+            }`}
+          />
+        </div>
+      )}
       <div
         onClick={() => setField('drawerOpen', !drawerOpen)}
         className="flex items-center justify-between px-3 py-1.5 bg-slate-900/90 cursor-pointer"
@@ -292,7 +356,10 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
       </div>
 
       {drawerOpen && (
-        <div className="h-72 border-t border-slate-800/80 bg-[#090d16]">
+        <div
+          style={{ height: drawerHeight }}
+          className="border-t border-slate-800/80 bg-[#090d16]"
+        >
           {!pipingData ? (
             <div className="flex h-full items-center justify-center text-xs text-slate-500">
               {t.drawer.emptyHint}
