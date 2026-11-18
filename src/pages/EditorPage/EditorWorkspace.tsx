@@ -122,51 +122,55 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
     setTimeout(() => setToast(null), 3500);
   };
 
+  const renderNow = useCallback(() => {
+    const engine = engineRef.current;
+    const vp = viewportRef.current;
+    const entities = engine.getPageEntities();
+    const selected = engine.getSelectedIds();
+
+    const lines: RenderLinePrimitive[] = [];
+    for (const ent of entities) {
+      const isSel = selected.has(ent.id);
+      for (const prim of ent.toRenderPrimitives(isSel, false)) {
+        lines.push(prim);
+      }
+    }
+    for (const prev of engine.getActiveTool().getPreviewPrimitives()) {
+      lines.push(prev);
+    }
+
+    const st = useEditorStore.getState();
+    rendererRef.current.render({
+      viewport: vp,
+      pdfPage: pdfBgRef.current,
+      lines,
+      polygons: [],
+      snapIndicator: engine.getCurrentSnap(),
+      gridVisible: st.gridVisible,
+      isometricGrid: st.isoplaneMode !== 'OFF',
+    });
+
+    hudRef.current.render({
+      viewport: vp,
+      entities,
+      selectedIds: selected,
+      snapIndicator: engine.getCurrentSnap(),
+      marqueeBox: engine.getMarqueeBox(),
+      pageDimensionsPt: pdfBgRef.current
+        ? { width: pdfBgRef.current.widthPt, height: pdfBgRef.current.heightPt }
+        : null,
+      showRulers: st.showRulers,
+    });
+  }, []);
+
   const requestRender = useCallback(() => {
     if (rafScheduledRef.current) return;
     rafScheduledRef.current = true;
     requestAnimationFrame(() => {
       rafScheduledRef.current = false;
-      const engine = engineRef.current;
-      const vp = viewportRef.current;
-      const entities = engine.getPageEntities();
-      const selected = engine.getSelectedIds();
-
-      const lines: RenderLinePrimitive[] = [];
-      for (const ent of entities) {
-        const isSel = selected.has(ent.id);
-        for (const prim of ent.toRenderPrimitives(isSel, false)) {
-          lines.push(prim);
-        }
-      }
-      for (const prev of engine.getActiveTool().getPreviewPrimitives()) {
-        lines.push(prev);
-      }
-
-      const st = useEditorStore.getState();
-      rendererRef.current.render({
-        viewport: vp,
-        pdfPage: pdfBgRef.current,
-        lines,
-        polygons: [],
-        snapIndicator: engine.getCurrentSnap(),
-        gridVisible: st.gridVisible,
-        isometricGrid: st.isoplaneMode !== 'OFF',
-      });
-
-      hudRef.current.render({
-        viewport: vp,
-        entities,
-        selectedIds: selected,
-        snapIndicator: engine.getCurrentSnap(),
-        marqueeBox: engine.getMarqueeBox(),
-        pageDimensionsPt: pdfBgRef.current
-          ? { width: pdfBgRef.current.widthPt, height: pdfBgRef.current.heightPt }
-          : null,
-        showRulers: st.showRulers,
-      });
+      renderNow();
     });
-  }, []);
+  }, [renderNow]);
 
   const fitToScreen = useCallback(() => {
     const el = containerRef.current;
@@ -279,7 +283,8 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
       const dpr = window.devicePixelRatio || 1;
       rendererRef.current.resize(container.clientWidth, container.clientHeight, dpr);
       hudRef.current.resize(hudCanvas, container.clientWidth, container.clientHeight, dpr);
-      requestRender();
+      // Render synchronously after resizing so the cleared WebGL buffer is never composited black.
+      renderNow();
     };
     handleResize();
     const ro = new ResizeObserver(handleResize);
@@ -673,7 +678,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
 
   const activeJointStamp =
     store.activeJointModalEntityId &&
-    engineRef.current.repo.getById(store.activeJointModalEntityId) instanceof WeldStampEntity
+      engineRef.current.repo.getById(store.activeJointModalEntityId) instanceof WeldStampEntity
       ? (engineRef.current.repo.getById(store.activeJointModalEntityId) as WeldStampEntity)
       : null;
 
