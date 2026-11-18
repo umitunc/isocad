@@ -1,6 +1,14 @@
 import React, { useMemo } from 'react';
 import { ChevronDown, Download, Table2 } from 'lucide-react';
-import { SheetGL, type ColumnDef, type GridPermissions, type GridToolbarConfig } from 'sheetgl';
+import {
+  SheetGL,
+  appleDark,
+  appleLight,
+  type ColumnDef,
+  type GridPermissions,
+  type GridToolbarConfig,
+  type IGridThemeTokens,
+} from 'sheetgl';
 import { useLocaleStore } from '../../i18n/useLocaleStore';
 import { useEditorStore } from '../../store/useEditorStore';
 import { useThemeStore } from '../../store/useThemeStore';
@@ -9,6 +17,69 @@ interface BottomDataDrawerProps {
   onFocusWorldPoint: (pt: { x: number; y: number }) => void;
   onExportExcel: () => void;
 }
+
+const ISOCAD_DARK_THEME: IGridThemeTokens = {
+  ...appleDark,
+  name: 'isocad-dark',
+  isDark: true,
+  canvas: {
+    ...appleDark.canvas,
+    bg: '#090d16',
+    zebraRowBg: '#0c1220',
+    rowHoverBg: 'rgba(34, 211, 238, 0.08)',
+    gridLine: '#1e293b',
+    headerBg: '#0b1120',
+    headerText: '#cbd5e1',
+    headerBorder: '#1e293b',
+    cellText: '#e2e8f0',
+    rowNumberBg: '#0b1120',
+    rowNumberText: '#64748b',
+    rowNumberBorder: '#1e293b',
+    groupRowBg: '#0f172a',
+    groupRowText: '#e2e8f0',
+    groupRowBorder: '#1e293b',
+    selectionBorder: '#06b6d4',
+    selectionFill: 'rgba(6, 182, 212, 0.14)',
+    fillHandleColor: '#22d3ee',
+  },
+  dom: {
+    ...appleDark.dom,
+    toolbarBg: '#0b1120',
+    toolbarBorder: '#1e293b',
+    toolbarText: '#e2e8f0',
+    popoverBg: '#0b1120',
+    popoverBorder: '#334155',
+    popoverText: '#e2e8f0',
+    inputBg: '#0f172a',
+    inputText: '#f1f5f9',
+    inputBorder: '#334155',
+    inputFocusBorder: '#06b6d4',
+    accentColor: '#06b6d4',
+    buttonHoverBg: '#1e293b',
+    badgeBg: 'rgba(6, 182, 212, 0.15)',
+    badgeText: '#67e8f9',
+  },
+};
+
+const ISOCAD_LIGHT_THEME: IGridThemeTokens = {
+  ...appleLight,
+  name: 'isocad-light',
+  isDark: false,
+  canvas: {
+    ...appleLight.canvas,
+    rowHoverBg: 'rgba(6, 182, 212, 0.07)',
+    selectionBorder: '#0891b2',
+    selectionFill: 'rgba(6, 182, 212, 0.12)',
+    fillHandleColor: '#0891b2',
+  },
+  dom: {
+    ...appleLight.dom,
+    inputFocusBorder: '#0891b2',
+    accentColor: '#0891b2',
+    badgeBg: 'rgba(6, 182, 212, 0.14)',
+    badgeText: '#0e7490',
+  },
+};
 
 const READONLY_PERMISSIONS: GridPermissions = {
   mode: 'readonly',
@@ -143,38 +214,62 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
 
   return (
     <div className="border-t border-slate-800 bg-[#0b1120] text-slate-200 select-none">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-slate-900/90">
+      <div
+        onClick={() => setField('drawerOpen', !drawerOpen)}
+        className="flex items-center justify-between px-3 py-1.5 bg-slate-900/90 cursor-pointer"
+        title="Toggle Data Drawer"
+      >
         <div className="flex items-center gap-1.5">
           <Table2 className="h-3.5 w-3.5 text-cyan-400" />
           {(
             [
-              ['mto', `${t.drawer.mto} (${mtoCount})`],
-              ['weld', `${t.drawer.weldLog} (${weldCount})`],
-              ['cut', `${t.drawer.cutList} (${cutCount})`],
-              ['support', `${t.drawer.supports} (${supCount})`],
+              ['mto', t.drawer.mto, mtoCount],
+              ['weld', t.drawer.weldLog, weldCount],
+              ['cut', t.drawer.cutList, cutCount],
+              ['support', t.drawer.supports, supCount],
             ] as const
-          ).map(([tabId, label]) => (
-            <button
-              key={tabId}
-              type="button"
-              onClick={() => {
-                setField('drawerTab', tabId);
-                setField('drawerOpen', true);
-              }}
-              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                drawerOpen && drawerTab === tabId
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+          ).map(([tabId, label, count]) => {
+            const isActive = drawerOpen && drawerTab === tabId;
+            return (
+              <button
+                key={tabId}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setField('drawerTab', tabId);
+                  setField('drawerOpen', true);
+                }}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  isActive
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                }`}
+              >
+                <span>{label}</span>
+                <span
+                  className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-mono leading-none ${
+                    isActive
+                      ? theme === 'light'
+                        ? 'bg-cyan-600 text-white'
+                        : 'bg-cyan-500/30 text-cyan-200'
+                      : theme === 'light'
+                        ? 'bg-slate-200 text-slate-700'
+                        : 'bg-slate-800 text-slate-300'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onExportExcel}
+            onClick={(e) => {
+              e.stopPropagation();
+              onExportExcel();
+            }}
             className="inline-flex items-center gap-1 rounded bg-emerald-600/90 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-emerald-500 cursor-pointer"
           >
             <Download className="h-3 w-3" />
@@ -182,7 +277,10 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setField('drawerOpen', !drawerOpen)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setField('drawerOpen', !drawerOpen);
+            }}
             className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer"
             title="Toggle Data Drawer"
           >
@@ -206,7 +304,7 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
                 dataSource={rows}
                 columns={columns}
                 keyField="id"
-                theme={theme === 'dark' ? 'apple-dark' : 'apple-light'}
+                theme={theme === 'dark' ? ISOCAD_DARK_THEME : ISOCAD_LIGHT_THEME}
                 locale={locale === 'tr' ? 'tr' : 'en'}
                 rowHeight={30}
                 headerHeight={32}

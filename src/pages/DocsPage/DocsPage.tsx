@@ -602,4 +602,79 @@ export const DocsPage: React.FC = () => {
                 ))}
               </ul>
 
-              {sec.installCmd 
+              {sec.installCmd && (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-900/90 px-4 py-2.5">
+                  <div className="flex items-center gap-2.5 font-mono text-xs">
+                    <Terminal className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <span className="text-slate-400 select-none">$</span>
+                    <code className="font-semibold text-cyan-300">{sec.installCmd}</code>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {sec.npmUrl && (
+                      <a
+                        href={sec.npmUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-700 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:bg-slate-800"
+                      >
+                        npm
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(sec.installCmd!);
+                        setCopiedCmd(true);
+                        setTimeout(() => setCopiedCmd(false), 1800);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg bg-cyan-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-cyan-500 cursor-pointer"
+                    >
+                      {copiedCmd ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      {copiedCmd ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {sec.secondaryCode && sec.code ? (
+                <div className="space-y-2">
+                  <div className="inline-flex rounded-lg border border-slate-700/80 bg-slate-900/70 p-0.5 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setInstallTab('primary')}
+                      className={`rounded-md px-3 py-1 font-medium transition-colors cursor-pointer ${
+                        installTab === 'primary'
+                          ? 'bg-cyan-600 text-white'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {sec.secondaryCode.tabPrimary}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInstallTab('secondary')}
+                      className={`rounded-md px-3 py-1 font-medium transition-colors cursor-pointer ${
+                        installTab === 'secondary'
+                          ? 'bg-cyan-600 text-white'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {sec.secondaryCode.tabSecondary}
+                    </button>
+                  </div>
+                  <CodeBlock
+                    code={installTab === 'primary' ? sec.code : sec.secondaryCode.code}
+                    language={installTab === 'primary' ? sec.codeLang : sec.secondaryCode.lang}
+                  />
+                </div>
+              ) : (
+                sec.code && <CodeBlock code={sec.code} language={sec.codeLang} />
+              )}
+            </section>
+          ))}
+        </main>
+      </div>
+    </div>
+  );
+};
