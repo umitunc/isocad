@@ -1,0 +1,38 @@
+[
+  {
+    "id": "gn-80",
+    "drawingNo": "GN-80-AH01FS-FA00.030",
+    "drawingType": "engineering",
+    "revision": "01",
+    "isLatest": true,
+    "title": "Danieli Standard Piping Isometric (DN80)",
+    "url": "/samples/GN-80-AH01FS-FA00.030.pdf"
+  },
+  {
+    "id": "gn-250",
+    "drawingNo": "GN-250-AH01FS-FA00.027",
+    "drawingType": "engineering",
+    "revision": "00",
+    "isLatest": true,
+    "title": "Danieli Multi-Element Isometric (DN250)",
+    "url": "/samples/GN-250-AH01FS-FA00.027.pdf"
+  },
+  {
+    "id": "qwr-200",
+    "drawingNo": "QWR-200-AH01JL-FA00.002-PP",
+    "drawingType": "spool",
+    "revision": "02",
+    "isLatest": true,
+    "title": "Multi-Page Continuation Isometric (DN200)",
+    "url": "/samples/QWR-200-AH01JL-FA00.002-PP.pdf"
+  },
+  {
+    "id": "gn-400",
+    "drawingNo": "GN-400-AH01FS-FA00.015-B1",
+    "drawingType": "as_build",
+    "revision": "B1",
+    "isLatest": false,
+    "title": "Danieli Russian/Bilingual Header Isometric (DN400)",
+    "url": "/samples/GN-400-AH01FS-FA00.015-B1.pdf"
+  }
+]

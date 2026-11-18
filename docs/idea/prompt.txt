@@ -1,0 +1,113 @@
+PROMPT: PDF Piping Izometrik Çizimlerinden Otomatik Veri Çıkarım ve Excel Raporlama Sistemi
+GÖREV ÖZETİ
+Python kullanarak piping (borulama) izometrik çizim PDF'lerinden otomatik veri çıkarımı yapacak bir script geliştir. Script; Material Take-Off (MTO), Weld Log (kaynak listesi), Cut List (kesim listesi) ve Support Listesi oluşturarak Excel formatında raporlayacak.
+INPUT VERİLERİ
+PDF Dosyaları: İzometrik piping çizimleri (çoğunlukla çok sayfalı)
+Sayfa 1: Ana çizim + MTO tablosu
+Sayfa 2+: "CONT. ON/FROM" ile bağlı devam sayfaları veya bağımsız sayfalar
+Formatlar: GN-250-AH01FS-FA00.027.pdf, QWR-200-AH01JL-FA00.002-PP.pdf
+Çizim Elementleri:
+Item Numaraları: <1>, <2>, [1], ▲1 (üçgen içinde), △1 (boş üçgen)
+Özel Kodlar: F1, F2 (Flange işaretleri), G1, G4 (Gasket işaretleri), S1, SP-01 (Support işaretleri)
+Uzunluklar: Kutuların dışında, iki uçlu oklarla gösterilen sayılar (örn: 524, 8094) - Cut Pipe Length olarak kaydedilecek
+Jointler: Altıgen semboller (Weld Log'da joint noktası olarak kullanılacak)
+OUTPUT VERİLERİ
+Excel Dosyası (4 Sheet):
+MTO Sheet: Malzeme listesi
+Kolonlar: Line No, Rev No, Sheet No, Item No, Component (PIPE/FITTINGS/FLANGES/VALVES/GASKETS/SUPPORTS), Description, Size (DN), DAN Code, Qty, Unit, Weight (Kg)
+Weld_Log Sheet: Kaynak bağlantı listesi
+Kolonlar: Line No, Joint No, Rev No, Sheet No, Item 1, Component Description 1, Size 1 (mm), Size 1 (Inch), Thk 1 (mm), DAN Code 1, Size 1 (DN), Item 2, Component Description 2, Size 2 (mm), Size 2 (Inch), Thk 2 (mm), DAN Code 2, Size 2 (DN)
+Mantık: Çizimdeki item numaraları sırasıyla bağlanır (1→2, 2→4, 4→3...). Her bağlantı bir joint'tir.
+Cut_List Sheet: Boru kesim listesi
+Kolonlar: Line No, Piece No (örn: <1>), Length (mm), Size (DN), End Prep (BE/BE, BE/PE)
+Support_List Sheet: Support listesi
+Kolonlar: Line No, Rev No, Sheet No, Support Ref (S1, SP-01), Support Type (Rigid/Spring/Guide), Description, Size (DN), Quantity, Status
+TEKNİK GEREKSİNİMLER ve KURALLAR
+1. PDF Parsing Mantığı
+pdfplumber kullanarak metin çıkarımı yap.
+Her sayfayı ayrı analiz et, sonra "CONT. ON/FROM" bağlantılarına göre birleştir.
+Sayfa analizi:
+Çizim VAR + MTO VAR → Ana sayfa
+Çizim BOŞ + MTO VAR → Önceki sayfaya ait (birleştir)
+Çizim VAR + MTO YOK → Devam sayfası (çizim birleştirilir ama MTO'su yoktur)
+2. Item Numarası Tespiti (Kritik)
+Çizimdeki kutu/dikdörtgen içindeki numaraları tespit et (kutusuz olanlar uzunluktur):
+Formatlar: <1>, [1], (1), ▲1 (dolu üçgen), △1 (boş üçgen)
+F ve G Kodları:
+F1, F2... gördüğünde bunları Flange Item No olarak işaretle (MTO'da FLANGES kategorisinde ara)
+G1, G4... gördüğünde bunları Gasket Item No olarak işaretle (MTO'da GASKETS kategorisinde ara)
+3. MTO Çıkarımı (Material Take-Off)
+FABRICATION MATERIALS bölümünden tablo çıkar:
+Format 1: 1 | PIPE SW2302... | 200 | 000-000-089574 | 152.4M | 4462.57
+Format 2: 1 SW2302 PIPE... 200 000-000-089574 152.4M 4462.57
+Format 3 (Çin formatı): Item sütunları farklı sıralamada olabilir, esnek parse et
+Component Tipi Belirleme (Description'a göre):
+PIPE → PIPE
+FLANGE → FLANGES
+GASKET → GASKETS
+VALVE, GATE, GLOBE, BALL → VALVES
+ELBOW, TEE, REDUCER, COUPLING, CAP, NIPPLE → FITTINGS
+U-BOLT, SUPPORT, HANGER → SUPPORTS
+4. Size ve Thickness Parsing (Weld Log için)
+Her Component Description'dan şunları çıkar:
+Size (mm): DN250 → 250, NS200 → 200, 200 → 200
+Size (Inch): DN/25.4 hesapla veya standart mapping kullan (DN250=10", DN80=3")
+Thk (mm): Thk.6.35mm → 6.35, Thk.5.56 → 5.56, SCH80 → 8.18 (standart değer)
+5. Topology (Bağlantı) Oluşturma
+Weld Log'u oluşturmak için:
+Çizimde tespit edilen item numaralarını sırala (örn: [1, 4, 3, 7, 2])
+Ardışık item'ları birleştir: 1→4 (Joint 1), 4→3 (Joint 2), 3→7 (Joint 3)...
+Her item için MTO'dan bilgileri çek ve Weld Log satırını oluştur
+6. Cut List Çıkarımı
+CUT PIPE LENGTH tablosundan:
+<1> 591 200 BE/BE → Piece No: <1>, Length: 591mm, Size: DN200, End Prep: BE/BE
+Ayrıca çizimdeki NS200 524 gibi bağlamlardan da uzunlukları tespit et
+
+KOD YAPISI (Pseudo-Code)
+
+class PipingDataExtractor:
+    def extract_text_from_pdf(pdf_path):
+        # Her sayfayı: text, has_drawing, has_mto, line_no, continuation olarak çıkar
+    
+    def extract_drawing_items_advanced(text):
+        # <1>, [1], ▲1, F1, G4 patternlerini bul ve kategorize et
+    
+    def analyze_multi_page_pdf(pages):
+        # CONT. ON/FROM kontrolü yaparak sayfaları birleştir veya ayır
+        # Her Line No için birleştirilmiş text oluştur
+    
+    def extract_mto_advanced(text, line_no):
+        # FABRICATION MATERIALS bölümünü parse et
+        # Her item için: Item No, Type, Description, Size, DAN Code, Qty, Weight
+    
+    def parse_size_thk(description):
+        # Description'dan Size(mm), Size(Inch), Thk(mm) çıkar
+    
+    def generate_topology(drawing_items, mto_dict):
+        # Çizim item'larını sırayla bağla [(1,4), (4,3), (3,7)...]
+        # Her bağlantı için MTO'dan detayları çek
+    
+    def create_excel():
+        # 4 Sheet oluştur: MTO, Weld_Log (Size ve Thk kolonları dahil), Cut_List, Support_List
+
+ÖNEMLİ KISITLAR ve EDGE CASE'LER
+F/G Kodları: F1 gördüğünde bunun Flange olduğunu anla, ama MTO'da Item No olarak 1 değil, Flange satırındaki Item No'yu kullan (F1 sadece işaretçidir).
+Çok Sayfalı PDF:
+Sayfa 1'de CONT. ON QWR-350-... varsa, bu sayfa o hatta devamdır.
+Sayfa 2'de CONT. FROM DRG 1 varsa, Sayfa 1'in devamıdır ve MTO'su Sayfa 1'e aittir.
+Line No Tespiti:
+PDF içinde LINE: GN-250-AH01FS-FA00.027 veya LINE ID: RV2-FE31.800 ara
+Yoksa dosya adını kullan (örn: GN-250-AH01FS-FA00.027)
+DAN Code Formatı:
+000-000-089-574 veya 000000089574 olabilir, normalize et.
+Unit Belirleme:
+PIPE için M (metre), FT (feet) olabilir
+Diğerleri için ADT (adet)
+BAŞARIM KRİTERLERİ
+[ ] Tüm PDF'lerden hatasız MTO çıkarımı
+[ ] Weld Log'da çizimdeki item sırasına göre doğru bağlantılar
+[ ] Size ve Thickness değerlerinin mm/inch olarak doğru parse edilmesi
+[ ] F ve G kodlarının doğru yorumlanması
+[ ] Çok sayfalı PDF'lerde "CONT. ON/FROM" mantığının doğru çalışması
+[ ] Excel çıktısında tüm 4 sheet'in düzgün formatlanması
+Bu prompt'u kullanarak Python scripti yaz. Kodda pdfplumber, pandas ve openpyxl kütüphanelerini kullan. Hata yönetimi (try-except) ve kullanıcıya bilgi mesajları (print) ekle.

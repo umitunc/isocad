@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="tr" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#060913" />
+    <title>IsoCad — WebGL2 CAD &amp; Endüstriyel Piping PDF Düzenleyici</title>
+    <meta
+      name="description"
+      content="IsoCad, tarayıcıda 60 FPS WebGL2 ile çalışan AutoCAD alternatifli izometrik CAD çizim ve endüstriyel Piping PDF düzenleme platformudur. Otomatik MTO, Weld Log, Cut List çıkarımı, As-Built kaynak damgalama ve çift yönlü REST/Webhook API aktarımı sunar."
+    />
+    <meta
+      name="keywords"
+      content="IsoCad, WebGL CAD, AutoCAD alternatifi, Piping Isometric PDF Editor, MTO Extractor, Weld Log, Cut List, As-Built Weldmap, Danieli, Linde, Trunçgil"
+    />
+    <meta name="author" content="Trunçgil Teknoloji" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <link rel="canonical" href="https://isocad.truncgil.com/" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="IsoCad — Browser-Native 60 FPS WebGL2 CAD &amp; Piping PDF Intelligence" />
+    <meta
+      property="og:description"
+      content="AutoCAD-grade isometric drafting, automated MTO / Weld Log / Cut List extraction from PDFs, As-Built weldmap stamping and REST/Webhook API sync."
+    />
+    <meta property="og:url" content="https://isocad.truncgil.com/" />
+    <meta property="og:site_name" content="IsoCad" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="IsoCad — WebGL2 CAD &amp; Piping PDF Editor" />
+    <meta
+      name="twitter:description"
+      content="60 FPS WebGL2 CAD drafting, automated MTO/Weld Log extraction &amp; lossless vector PDF export."
+    />
+
+    <!-- Google Fonts: Outfit, Plus Jakarta Sans, Inter, JetBrains Mono (uxiGL Liquid Glass Typography) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- GEO (Generative Engine Optimization) JSON-LD Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "IsoCad",
+            "applicationCategory": "CADApplication",
+            "operatingSystem": "Web Browser (WebGL2)",
+            "url": "https://isocad.truncgil.com/",
+            "inLanguage": ["tr", "en", "ru"],
+            "description": "Browser-native 60 FPS WebGL2 CAD alternative and industrial Piping Isometric PDF editor with automated MTO, Weld Log, Cut List extraction, As-Built weldmap stamping, lossless vector PDF export and REST/Webhook API sync.",
+            "featureList": [
+              "60 FPS WebGL2 Instanced Vector CAD Engine with R-Tree OSNAP and F5 Isoplane (30/90/150 deg)",
+              "Automated MTO, Weld Log, Cut List & Support extraction from Danieli (EN/RU) & Linde PDFs",
+              "As-Built dual-compartment Weld & Welder Stamping with edge-snapping leader lines",
+              "Lossless Vector PDF (pdf-lib), 5-Sheet Excel (.xlsx) & AutoCAD DXF export",
+              "Bidirectional REST Webhook, Stellar Laravel API & Iframe PostMessage integration"
+            ],
+            "publisher": {
+              "@type": "Organization",
+              "name": "Trunçgil Teknoloji",
+              "url": "https://truncgil.com"
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is IsoCad and how does it replace desktop CAD for piping PDFs?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "IsoCad runs 100% in the browser using a custom WebGL2 vector engine with R-Tree OSNAP, F5 Isometric Plane locking (30/90/150 degrees), and an AutoCAD-compatible command line, eliminating desktop CAD installations while preserving lossless vector PDF output."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Which piping isometric PDF formats can IsoCad extract automatically?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "IsoCad extracts Material Take-Off (MTO), Cut Pipe Length, Support Lists, and Weld Logs from Danieli Standard, Danieli Russian Cyrillic, Linde/Energiron, and stamped As-Built isometric PDFs into 5-sheet Excel workbooks and JSON envelopes."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does IsoCad sync data with external ERP, MES, or Stellar applications?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "IsoCad provides pluggable IDataSyncAdapter strategies including RestWebhookAdapter (POST/PUT JSON + Vector PDF), StellarApiAdapter for Laravel backends, and PostMessageBridge for iframe embedding."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-CwCFYPke.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/pdf-exporter-CwMmiqx2.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-DKzWZJbf.css">
+  </head>
+  <body class="bg-[#060913] text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div id="root"></div>
+  </body>
+</html>

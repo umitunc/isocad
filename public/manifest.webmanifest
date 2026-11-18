@@ -1,0 +1,22 @@
+{
+  "name": "IsoCad — WebGL2 CAD & Piping PDF Intelligence",
+  "short_name": "IsoCad",
+  "description": "Browser-native 60 FPS WebGL2 CAD & Industrial Piping Isometric PDF Editor",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060913",
+  "theme_color": "#00e5ff",
+  "icons": [
+    {
+      "src": "/isocad-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
