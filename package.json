@@ -1,6 +1,6 @@
 {
   "name": "isocad-webgl-pdf",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "IsoCad — Browser-native WebGL2 CAD & Industrial Piping Isometric PDF Editor with automated MTO, Weld Log, Cut List extraction and bidirectional API sync.",
   "keywords": [
     "isocad",
