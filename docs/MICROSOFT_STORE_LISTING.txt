@@ -1,0 +1,173 @@
+================================================================================
+ISOCAD — MICROSOFT STORE (PARTNER CENTER) YAYIN BİLGİLERİ
+================================================================================
+Uygulama Adı (Product Name) : IsoCad
+Paket Kimliği (App ID)      : com.truncgil.isocad
+Yayıncı (Publisher)         : Trunçgil Teknoloji
+Sürüm (Version)             : 1.0.1
+Desteklenen Diller (APPX)   : tr-TR, en-US (Uygulama içi arayüz: TR, EN, RU)
+Platform                    : Windows 10 / Windows 11 (x64)
+Fiyatlandırma / Lisans      : Ücretsiz (veya Partner Center üzerinden belirlenecek)
+Telif Hakkı (Copyright)     : Copyright © 2026 Trunçgil Teknoloji
+Web Sitesi                  : https://isocad.truncgil.com/
+Yayıncı Web Sitesi          : https://truncgil.com/
+
+--------------------------------------------------------------------------------
+1. KATEGORİ & SINIFLANDIRMA (CATEGORY & AGE RATING)
+--------------------------------------------------------------------------------
+Birincil Kategori (Category)    : Productivity (Üretkenlik)
+Alt Kategori (Subcategory)      : Engineering / Design & Illustration (veya Utilities & Tools)
+Yaş Derecelendirmesi (Age)      : 3+ / Everyone (IARC anketinde CAD & mühendislik aracı)
+
+--------------------------------------------------------------------------------
+2. ENGLISH (en-US) — STORE LISTING
+--------------------------------------------------------------------------------
+[Title / App Name]
+IsoCad
+
+[Short Title / Subtitle]
+WebGL2 CAD & Industrial Piping Isometric PDF Editor
+
+[Short Description (Özet Açıklama)]
+High-performance 60 FPS WebGL2 CAD drafting and industrial Piping Isometric PDF editor with automated MTO, Weld Log, Cut List extraction, As-Built weldmap stamping, lossless vector PDF/Excel/DXF export, and REST/Webhook API sync.
+
+[Full Description (Detaylı Açıklama)]
+IsoCad is a high-performance desktop and browser-native CAD & Industrial Piping Isometric PDF Intelligence platform built for piping engineers, QA/QC teams, fabricators, and EPC contractors.
+
+Powered by a custom 60 FPS WebGL2 instanced vector engine and an AutoCAD-compatible command workflow, IsoCad eliminates heavy legacy CAD installations while delivering precision isometric drafting, automated engineering table extraction, and lossless vector PDF output.
+
+KEY CAPABILITIES:
+• 60 FPS WebGL2 Vector CAD Engine: Hardware-accelerated instanced rendering with R-Tree spatial indexing (OSNAP), F5 Isometric Plane locking (30° / 90° / 150°), Ortho/Polar tracking, and familiar CAD commands.
+• Automated Piping Isometric Extraction: Automatically parses Material Take-Off (MTO), Cut Pipe Length lists, Support Lists, and Weld Logs from Danieli Standard, Danieli Russian Cyrillic, Linde/Energiron, and stamped As-Built isometric PDFs.
+• As-Built Weld & Welder Stamping: Dual-compartment Weld & Welder inspection stamps with smart edge-snapping leader lines, weld topology validation, and instant tabular synchronization.
+• Lossless Multi-Format Export: Export crisp lossless vector PDFs (preserving original engineering drawings), structured 5-sheet Excel workbooks (.xlsx), JSON data envelopes, and AutoCAD-compatible DXF files.
+• Bidirectional API & ERP/MES Integration: Built-in REST Webhook adapter (POST/PUT JSON + Vector PDF), Stellar API integration, and embeddable bridge support for seamless enterprise workflows.
+• 100% Offline Desktop Ready: All core CAD rendering, PDF parsing, and export engines run locally on your machine with no internet connection required.
+
+MULTILINGUAL & THEME SUPPORT:
+• Interface available in English, Turkish, and Russian.
+• Dark & Light themes designed for long engineering sessions.
+
+[Product Features (Özellik Maddeleri - Store Listelemesi İçin)]
+1. 60 FPS WebGL2 CAD engine with R-Tree OSNAP and F5 Isoplane (30°/90°/150°)
+2. Automated MTO, Weld Log, Cut List & Support extraction from Piping Isometric PDFs
+3. Danieli (EN/RU) & Linde/Energiron isometric PDF format support
+4. As-Built dual-compartment Weld & Welder stamping with edge-snapping leaders
+5. Lossless Vector PDF, 5-sheet Excel (.xlsx), JSON & DXF export
+6. Bidirectional REST/Webhook & ERP/MES API synchronization
+7. Full offline Windows desktop execution with local file persistence
+
+[What's New in This Version (v1.0.1)]
+• Initial Microsoft Store release of IsoCad Desktop (v1.0.1).
+• 60 FPS WebGL2 CAD & Piping Isometric PDF Editor with offline support.
+• Automated MTO, Weld Log, Cut List, and Support List extraction.
+• Lossless Vector PDF, 5-sheet Excel (.xlsx), and DXF export.
+
+[Search Terms / Keywords (En fazla 7 adet, her biri maks. 30 karakter)]
+1. CAD
+2. Piping Isometric
+3. PDF Editor
+4. MTO Extractor
+5. Weld Log
+6. Engineering CAD
+7. DXF PDF
+
+--------------------------------------------------------------------------------
+3. TÜRKÇE (tr-TR) — MAĞAZA LİSTELEMESİ
+--------------------------------------------------------------------------------
+[Başlık (Title)]
+IsoCad
+
+[Alt Başlık (Short Title / Subtitle)]
+WebGL2 CAD & Endüstriyel Piping İzometrik PDF Düzenleyici
+
+[Kısa Açıklama (Short Description)]
+60 FPS WebGL2 tabanlı CAD çizim motoru; otomatik MTO, Kaynak Listesi (Weld Log), Kesim Listesi (Cut List) çıkarımı, As-Built kaynak damgalama, kayıpsız vektörel PDF/Excel/DXF dışa aktarım ve REST/Webhook API senkronizasyonu sunan endüstriyel Piping PDF platformu.
+
+[Detaylı Açıklama (Full Description)]
+IsoCad; borulama (piping) mühendisleri, kalite kontrol (QA/QC) ekipleri, imalat atölyeleri ve EPC yüklenicileri için geliştirilmiş yüksek performanslı bir WebGL2 CAD ve Endüstriyel Piping İzometrik PDF düzenleme platformudur.
+
+Özel 60 FPS WebGL2 vektör motoru ve AutoCAD uyumlu komut akışı sayesinde ağır masaüstü CAD kurulumlarına gerek kalmadan hassas izometrik çizim, otomatik mühendislik tablosu çıkarımı ve kayıpsız vektörel PDF çıktısı üretir.
+
+ÖNE ÇIKAN ÖZELLİKLER:
+• 60 FPS WebGL2 Vektör CAD Motoru: Donanım hızlandırmalı çizim, R-Tree uzamsal indeksleme (OSNAP), F5 İzometrik Düzlem kilidi (30° / 90° / 150°), Ortho/Polar yakalama ve tanıdık CAD komut satırı.
+• Otomatik Piping İzometrik Veri Çıkarımı: Danieli Standart, Danieli Kiril (Rusça), Linde/Energiron ve damgalı As-Built izometrik PDF'lerden Malzeme Listesi (MTO), Boru Kesim Listesi (Cut List), Destek Listesi (Support List) ve Kaynak Listesini (Weld Log) otomatik olarak ayrıştırır.
+• As-Built Kaynak & Kaynakçı Damgalama: Çift bölmeli kaynak ve kaynakçı damgaları, kenara yapışan akıllı lider çizgileri (leader lines), kaynak topoloji doğrulaması ve anlık tablo senkronizasyonu.
+• Kayıpsız Çoklu Format Dışa Aktarım: Orijinal teknik çizimi bozmayan kayıpsız vektörel PDF, 5 sekmeli yapılandırılmış Excel (.xlsx) çalışma kitabı, JSON veri paketi ve AutoCAD uyumlu DXF çıktısı.
+• Çift Yönlü API & ERP/MES Entegrasyonu: REST Webhook adaptörü (POST/PUT JSON + Vektörel PDF) ve kurumsal sistemlerle çift yönlü veri senkronizasyonu.
+• Tam Çevrimdışı Masaüstü Çalışma: Tüm CAD motoru, PDF ayrıştırma ve dışa aktarım araçları internet bağlantısı olmadan yerel olarak çalışır.
+
+ÇOKLU DİL VE TEMA DESTEĞİ:
+• Türkçe, İngilizce ve Rusça arayüz seçenekleri.
+• Uzun mühendislik oturumları için optimize edilmiş Koyu (Dark) ve Açık (Light) tema.
+
+[Ürün Özellikleri (Store Features)]
+1. R-Tree OSNAP ve F5 İzometrik Düzlem (30°/90°/150°) destekli 60 FPS WebGL2 CAD motoru
+2. Piping İzometrik PDF'lerden otomatik MTO, Weld Log, Cut List ve Support List çıkarımı
+3. Danieli (EN/RU) ve Linde/Energiron izometrik PDF format desteği
+4. Akıllı lider çizgili As-Built çift bölmeli Kaynak & Kaynakçı damgalama
+5. Kayıpsız Vektörel PDF, 5 sekmeli Excel (.xlsx), JSON ve DXF dışa aktarım
+6. Çift yönlü REST/Webhook ve ERP/MES API senkronizasyonu
+7. İnternet bağlantısı gerektirmeyen tam çevrimdışı Windows masaüstü desteği
+
+[Bu Sürümdeki Yenilikler (v1.0.1)]
+• IsoCad Masaüstü uygulamasının ilk Microsoft Store sürümü (v1.0.1).
+• Çevrimdışı çalışan 60 FPS WebGL2 CAD ve Piping İzometrik PDF Düzenleyici.
+• Otomatik MTO, Kaynak Listesi, Kesim Listesi ve Destek Listesi çıkarımı.
+• Kayıpsız Vektörel PDF, 5 sekmeli Excel (.xlsx) ve DXF dışa aktarım.
+
+[Arama Anahtar Kelimeleri (En fazla 7 adet, her biri maks. 30 karakter)]
+1. CAD
+2. İzometrik PDF
+3. Piping
+4. PDF Düzenleyici
+5. Kaynak Listesi
+6. MTO
+7. DXF
+
+--------------------------------------------------------------------------------
+4. SİSTEM GEREKSİNİMLERİ (SYSTEM REQUIREMENTS)
+--------------------------------------------------------------------------------
+Minimum:
+• İşletim Sistemi : Windows 10 sürüm 19041.0 veya üzeri (x64) / Windows 11
+• Mimari          : x64
+• Bellek (RAM)    : 4 GB
+• Grafik          : WebGL2 destekli GPU (DirectX 11 / ANGLE uyumlu)
+• Depolama        : 300 MB kullanılabilir alan
+
+Önerilen:
+• İşletim Sistemi : Windows 11 (x64)
+• Bellek (RAM)    : 8 GB veya üzeri
+• Grafik          : Donanım hızlandırmalı WebGL2 destekli harici/dahili GPU
+
+--------------------------------------------------------------------------------
+5. GİZLİLİK, DESTEK VE İLETİŞİM BİLGİLERİ (PRIVACY & SUPPORT)
+--------------------------------------------------------------------------------
+Gizlilik Politikası URL : https://isocad.truncgil.com/privacy  (Yayın öncesi aktif URL ile doğrulayın)
+Destek URL              : https://isocad.truncgil.com/docs
+Web Sitesi              : https://isocad.truncgil.com/
+Geliştirici / Yayıncı   : Trunçgil Teknoloji (https://truncgil.com/)
+
+Gizlilik Beyanı Notu:
+IsoCad masaüstü uygulaması CAD çizimlerini, PDF ayrıştırma işlemlerini ve dışa aktarımları tamamen kullanıcının yerel cihazında gerçekleştirir. Harici REST/Webhook senkronizasyonu yalnızca kullanıcı tarafından açıkça yapılandırıldığında ve tetiklendiğinde çalışır.
+
+--------------------------------------------------------------------------------
+6. MAĞAZA GÖRSEL VARLIKLARI KONTROL LİSTESİ (STORE ASSETS)
+--------------------------------------------------------------------------------
+APPX Paket Varlıkları (build/appx/ içinde hazır):
+- StoreLogo.png         : 50x50 px
+- Square44x44Logo.png   : 44x44 px
+- Square150x150Logo.png : 150x150 px
+- Square310x310Logo.png : 310x310 px
+- Wide310x150Logo.png   : 310x150 px
+- SplashScreen.png      : 620x300 px
+
+Partner Center Ekran Görüntüleri (Yüklenmesi Önerilen):
+- Masaüstü Ekran Görüntüleri : En az 1, önerilen 4-5 adet (1920x1080 veya 1366x768 PNG/JPG)
+  1) Ana Sayfa / Genel Bakış
+  2) WebGL2 CAD & Piping İzometrik PDF Editörü
+  3) As-Built Kaynak Damgalama & MTO / Weld Log Alt Paneli
+  4) Çoklu Format Dışa Aktarım (Vector PDF / Excel / DXF) & API Köprüsü
+- Opsiyonel Store Tanıtım Görseli (Poster / Hero): 1920x1080 (16:9) veya 720x1080 (2:3)
+================================================================================
+
