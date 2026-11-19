@@ -4,14 +4,18 @@ import {
   BookOpen,
   ChevronDown,
   Code2,
+  Copy,
   Cpu,
   Download,
   FileDown,
   FileSpreadsheet,
   FolderOpen,
+  Minus,
   Send,
+  Square,
   Stamp,
   Upload,
+  X,
 } from 'lucide-react';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { ThemeToggle } from '../../components/ThemeToggle';
@@ -46,8 +50,26 @@ export const EditorMenuBar: React.FC<EditorMenuBarProps> = ({
 }) => {
   const { locale, t } = useLocaleStore();
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
+  const [isMaximized, setIsMaximized] = useState(false);
   const barRef = useRef<HTMLDivElement | null>(null);
   const labels = MENU_LABELS[locale];
+  const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI?.isElectron);
+
+  useEffect(() => {
+    const api = window.electronAPI;
+    if (!api?.isElectron) return;
+    let mounted = true;
+    void api.isWindowMaximized().then((max) => {
+      if (mounted) setIsMaximized(max);
+    });
+    const unsubscribe = api.onWindowMaximizedChange((max) => {
+      setIsMaximized(max);
+    });
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -72,7 +94,12 @@ export const EditorMenuBar: React.FC<EditorMenuBarProps> = ({
   };
 
   return (
-    <div ref={barRef} className="ml-auto flex flex-wrap items-center justify-end gap-1.5 text-xs">
+    <div
+      ref={barRef}
+      className={`ml-auto flex items-center justify-end gap-1.5 text-xs ${
+        isElectron ? 'flex-nowrap shrink-0' : 'flex-wrap'
+      }`}
+    >
       {/* Menu 1: PDF & Piping */}
       <div
         className="relative"
@@ -179,22 +206,56 @@ export const EditorMenuBar: React.FC<EditorMenuBarProps> = ({
       <button
         type="button"
         onClick={onOpenPushApi}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3 py-1.5 font-semibold text-white hover:bg-cyan-500 cursor-pointer"
+        className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg bg-cyan-600 px-3 py-1.5 font-semibold text-white hover:bg-cyan-500 cursor-pointer"
       >
         <Send className="h-3.5 w-3.5" />
         {t.editor.pushApi}
       </button>
 
-      {/* Docs + Theme + Language */}
-      <Link
-        to="/docs"
-        className="hidden sm:inline-flex items-center gap-1 rounded-lg border border-slate-700 px-2.5 py-1.5 text-slate-300 hover:bg-slate-800"
-      >
-        <BookOpen className="h-3.5 w-3.5" />
-        {t.nav.docs}
-      </Link>
-      <ThemeToggle />
-      <LanguageSwitcher />
+      {/* Docs (web only) + Theme + Language */}
+      {!isElectron && (
+        <Link
+          to="/docs"
+          className="hidden sm:inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-lg border border-slate-700 px-2.5 py-1.5 text-slate-300 hover:bg-slate-800"
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          {t.nav.docs}
+        </Link>
+      )}
+      <div className="flex shrink-0 items-center gap-1.5">
+        <ThemeToggle />
+        <LanguageSwitcher />
+      </div>
+
+      {/* Frameless Electron Window Controls */}
+      {isElectron && (
+        <div className="ml-1 flex shrink-0 items-center gap-0.5 border-l border-slate-800 pl-2">
+          <button
+            type="button"
+            onClick={() => window.electronAPI?.minimizeWindow()}
+            aria-label="Minimize"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100 cursor-pointer"
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => window.electronAPI?.toggleMaximizeWindow()}
+            aria-label={isMaximized ? 'Restore' : 'Maximize'}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100 cursor-pointer"
+          >
+            {isMaximized ? <Copy className="h-3 w-3" /> : <Square className="h-3 w-3" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => window.electronAPI?.closeWindow()}
+            aria-label="Close"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-rose-600 hover:text-white cursor-pointer"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

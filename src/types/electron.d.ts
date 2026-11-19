@@ -12,6 +12,11 @@ export interface ElectronAPI {
   isWindowsStore: boolean;
   getAppInfo: () => Promise<ElectronAppInfo>;
   openExternal: (url: string) => Promise<void>;
+  minimizeWindow: () => Promise<void>;
+  toggleMaximizeWindow: () => Promise<void>;
+  closeWindow: () => Promise<void>;
+  isWindowMaximized: () => Promise<boolean>;
+  onWindowMaximizedChange: (callback: (maximized: boolean) => void) => () => void;
 }
 
 declare global {

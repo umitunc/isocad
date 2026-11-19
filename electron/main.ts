@@ -64,83 +64,6 @@ function registerAppProtocol(): void {
   });
 }
 
-function buildMenu(): Menu {
-  const isDev = Boolean(DEV_SERVER_URL);
-
-  const template: Electron.MenuItemConstructorOptions[] = [
-    {
-      label: 'File',
-      submenu: [
-        {
-          label: 'Editor',
-          accelerator: 'CmdOrCtrl+E',
-          click: () => {
-            if (!mainWindow) return;
-            const target = DEV_SERVER_URL ? `${DEV_SERVER_URL}/editor` : `${APP_SCHEME}://${APP_HOST}/editor`;
-            void mainWindow.loadURL(target);
-          },
-        },
-        {
-          label: 'Home',
-          click: () => {
-            if (!mainWindow) return;
-            const target = DEV_SERVER_URL ? DEV_SERVER_URL : `${APP_SCHEME}://${APP_HOST}/`;
-            void mainWindow.loadURL(target);
-          },
-        },
-        { type: 'separator' },
-        { role: 'quit', label: 'Exit' },
-      ],
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'selectAll' },
-      ],
-    },
-    {
-      label: 'View',
-      submenu: [
-        { role: 'reload' },
-        ...(isDev ? [{ role: 'toggleDevTools' as const }] : []),
-        { type: 'separator' },
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' },
-      ],
-    },
-    {
-      label: 'Help',
-      submenu: [
-        {
-          label: 'IsoCad Documentation',
-          click: () => {
-            if (!mainWindow) return;
-            const target = DEV_SERVER_URL ? `${DEV_SERVER_URL}/docs` : `${APP_SCHEME}://${APP_HOST}/docs`;
-            void mainWindow.loadURL(target);
-          },
-        },
-        {
-          label: 'Trunçgil Teknoloji',
-          click: () => {
-            void shell.openExternal('https://truncgil.com');
-          },
-        },
-      ],
-    },
-  ];
-
-  return Menu.buildFromTemplate(template);
-}
-
 function createMainWindow(): void {
   const iconPath = path.resolve(__dirname, '..', 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png');
 
@@ -149,6 +72,8 @@ function createMainWindow(): void {
     height: 900,
     minWidth: 1024,
     minHeight: 680,
+    frame: false,
+    autoHideMenuBar: true,
     title: 'IsoCad — WebGL2 CAD & Piping PDF Editor',
     backgroundColor: '#060913',
     show: false,
@@ -173,14 +98,22 @@ function createMainWindow(): void {
     return { action: 'deny' };
   });
 
+  mainWindow.on('maximize', () => {
+    mainWindow?.webContents.send('window:maximized-changed', true);
+  });
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow?.webContents.send('window:maximized-changed', false);
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
   if (DEV_SERVER_URL) {
-    void mainWindow.loadURL(DEV_SERVER_URL);
+    void mainWindow.loadURL(`${DEV_SERVER_URL}/editor`);
   } else {
-    void mainWindow.loadURL(`${APP_SCHEME}://${APP_HOST}/`);
+    void mainWindow.loadURL(`${APP_SCHEME}://${APP_HOST}/editor`);
   }
 }
 
@@ -200,7 +133,7 @@ if (!gotSingleInstanceLock) {
       registerAppProtocol();
     }
 
-    Menu.setApplicationMenu(buildMenu());
+    Menu.setApplicationMenu(null);
 
     ipcMain.handle('app:get-info', () => ({
       name: app.getName(),
@@ -216,6 +149,25 @@ if (!gotSingleInstanceLock) {
       }
       return undefined;
     });
+
+    ipcMain.handle('window:minimize', () => {
+      mainWindow?.minimize();
+    });
+
+    ipcMain.handle('window:toggle-maximize', () => {
+      if (!mainWindow) return;
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    });
+
+    ipcMain.handle('window:close', () => {
+      mainWindow?.close();
+    });
+
+    ipcMain.handle('window:is-maximized', () => mainWindow?.isMaximized() ?? false);
 
     createMainWindow();
 

@@ -15,16 +15,18 @@ const PageLoader: React.FC = () => (
   </div>
 );
 
+const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI?.isElectron);
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={isElectron ? <Navigate to="/editor" replace /> : <LandingPage />} />
           <Route path="/demo" element={<EditorWorkspace isDemo />} />
           <Route path="/editor" element={<EditorWorkspace isDemo={false} />} />
-          <Route path="/docs" element={<DocsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/docs" element={isElectron ? <Navigate to="/editor" replace /> : <DocsPage />} />
+          <Route path="*" element={<Navigate to={isElectron ? '/editor' : '/'} replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
