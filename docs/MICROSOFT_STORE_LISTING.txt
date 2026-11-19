@@ -3,7 +3,15 @@ ISOCAD — MICROSOFT STORE (PARTNER CENTER) YAYIN BİLGİLERİ
 ================================================================================
 Uygulama Adı (Product Name) : IsoCad
 Paket Kimliği (App ID)      : com.truncgil.isocad
-Yayıncı (Publisher)         : Trunçgil Teknoloji
+Package/Identity/Name       : TruncgilTeknoloji.IsoCad
+Package/Identity/Publisher  : CN=36E5CC36-2B19-4151-A2CF-66EF42CB6EBD
+Yayıncı (PublisherDisplay)  : Truncgil Teknoloji
+Package Family Name (PFN)   : TruncgilTeknoloji.IsoCad_71hanpphv55n6
+Package SID                 : S-1-15-2-4032779455-3584386813-2121109177-2567928391-3244398492-4140075613-79692744
+Store ID                    : 9NS77WZTPSQ9
+Store URL                   : https://apps.microsoft.com/detail/9NS77WZTPSQ9
+Store Protocol Link         : ms-windows-store://pdp/?productid=9NS77WZTPSQ9
+MSA App ID                  : 54794a0d-7c4b-4770-9767-926dd54412d3
 Sürüm (Version)             : 1.0.1
 Desteklenen Diller (APPX)   : tr-TR, en-US (Uygulama içi arayüz: TR, EN, RU)
 Platform                    : Windows 10 / Windows 11 (x64)

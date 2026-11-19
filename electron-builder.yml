@@ -28,10 +28,10 @@ win:
         - x64
 
 appx:
-  # Microsoft Partner Center -> App management -> Product identity değerleri ile güncelleyin:
+  # Microsoft Partner Center -> App management -> Product identity
   identityName: TruncgilTeknoloji.IsoCad
-  publisher: CN=00000000-0000-0000-0000-000000000000
-  publisherDisplayName: Trunçgil Teknoloji
+  publisher: CN=36E5CC36-2B19-4151-A2CF-66EF42CB6EBD
+  publisherDisplayName: Truncgil Teknoloji
   applicationId: IsoCad
   backgroundColor: "#060913"
   showNameOnTiles: true
