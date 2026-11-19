@@ -80,7 +80,7 @@ export const JointWidgetModal: React.FC<JointWidgetModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
       <div className="w-full max-w-3xl rounded-xl border border-slate-700 bg-[#0f172a] text-slate-100 shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between bg-gradient-to-r from-cyan-600 to-blue-700 px-5 py-3">
+        <div className="flex items-center justify-between bg-gradient-to-r from-cyan-600 to-blue-700 px-5 py-3 text-white">
           <div className="flex items-center gap-2 font-semibold">
             <Wrench className="h-4 w-4" />
             <span>

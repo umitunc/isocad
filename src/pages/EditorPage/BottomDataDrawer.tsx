@@ -266,15 +266,13 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
           role="separator"
           aria-orientation="horizontal"
           onMouseDown={handleResizeStart}
-          className={`group flex h-1.5 w-full cursor-ns-resize items-center justify-center transition-colors ${
-            isResizing ? 'bg-cyan-500/40' : 'bg-slate-900/90 hover:bg-cyan-500/25'
-          }`}
+          className={`group flex h-1.5 w-full cursor-ns-resize items-center justify-center transition-colors ${isResizing ? 'bg-cyan-500/40' : 'bg-slate-900/90 hover:bg-cyan-500/25'
+            }`}
           title="Drag to resize height"
         >
           <div
-            className={`h-0.5 w-10 rounded-full transition-colors ${
-              isResizing ? 'bg-cyan-400' : 'bg-slate-700 group-hover:bg-cyan-400'
-            }`}
+            className={`h-0.5 w-10 rounded-full transition-colors ${isResizing ? 'bg-cyan-400' : 'bg-slate-700 group-hover:bg-cyan-400'
+              }`}
           />
         </div>
       )}
@@ -303,23 +301,21 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
                   setField('drawerTab', tabId);
                   setField('drawerOpen', true);
                 }}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                  isActive
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${isActive
                     ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                }`}
+                  }`}
               >
                 <span>{label}</span>
                 <span
-                  className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-mono leading-none ${
-                    isActive
+                  className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-mono leading-none ${isActive
                       ? theme === 'light'
                         ? 'bg-cyan-600 text-white'
                         : 'bg-cyan-500/30 text-cyan-200'
                       : theme === 'light'
                         ? 'bg-slate-200 text-slate-700'
                         : 'bg-slate-800 text-slate-300'
-                  }`}
+                    }`}
                 >
                   {count}
                 </span>
@@ -384,7 +380,7 @@ export const BottomDataDrawer: React.FC<BottomDataDrawerProps> = ({
                   showTotalCount: true,
                   showSelectionStats: true,
                   showColumnSummaries: true,
-                  allowConfiguration: false,
+                  allowConfiguration: true,
                 }}
                 onExport={onExportExcel}
                 onCellClick={(e) => {

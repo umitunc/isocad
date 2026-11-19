@@ -55,6 +55,7 @@ export const RightInspectorSidebar: React.FC<RightInspectorSidebarProps> = ({
     selectedJoint,
     selectedWelder,
     spools,
+    joints,
     welders,
     versions,
     activeVersion,
@@ -161,10 +162,18 @@ export const RightInspectorSidebar: React.FC<RightInspectorSidebarProps> = ({
             <div>
               <label className="block text-[11px] text-slate-400 mb-1">{t.editor.jointNo}</label>
               <input
+                list="extracted-joints-list"
                 value={selectedJoint}
                 onChange={(e) => setField('selectedJoint', e.target.value)}
                 className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono"
               />
+              {joints.length > 0 && (
+                <datalist id="extracted-joints-list">
+                  {joints.map((j) => (
+                    <option key={j} value={j} />
+                  ))}
+                </datalist>
+              )}
             </div>
 
             {editMode === 'joints_welder' && (

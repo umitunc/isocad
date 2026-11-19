@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
+import { CreditsModal } from '../../components/CreditsModal';
 import { CadEngineFacade } from '../../core/CadEngineFacade';
 import { AddEntityCommand, BatchCommand, RemoveEntityCommand } from '../../core/commands/EntityCommands';
 import { deserializeCadEntities } from '../../core/entities/EntityDeserializer';
@@ -215,10 +215,46 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
         doc,
         useEditorStore.getState().drawingNo,
       );
-      useEditorStore.getState().setField('pipingData', result);
-      useEditorStore.getState().setField('drawingNo', result.lineNo);
-      useEditorStore.getState().setField('revisionNo', result.revNo);
-      useEditorStore.getState().setField('drawerOpen', true);
+      const st = useEditorStore.getState();
+      st.setField('pipingData', result);
+      st.setField('drawingNo', result.lineNo);
+      st.setField('revisionNo', result.revNo);
+      st.setField('drawerOpen', true);
+
+      // Sync Weldmap sidebar options from extracted PDF data
+      const fullText = result.pages.map((p) => p.fullText).join('\n');
+      const explicitSpools = Array.from(
+        new Set((fullText.match(/\bSP-\d+\b/gi) ?? []).map((s) => s.toUpperCase())),
+      );
+      const sheetNos = Array.from(
+        new Set([
+          ...result.pages.map((p) => p.sheetNo),
+          ...result.welds.map((w) => w.sheetNo),
+          ...result.cuts.map((c) => c.sheetNo),
+        ].filter(Boolean)),
+      );
+      const derivedSpools =
+        explicitSpools.length > 0
+          ? explicitSpools
+          : sheetNos.length > 0
+            ? sheetNos.map((s) => `SP-${String(s).padStart(3, '0')}`)
+            : ['SP-001'];
+
+      const extractedJoints = Array.from(
+        new Set(result.welds.map((w) => String(w.jointNo)).filter(Boolean)),
+      );
+      const extractedWelders = Array.from(
+        new Set((fullText.match(/\bW-\d{2,4}\b/g) ?? []).map((w) => w.toUpperCase())),
+      );
+
+      st.setField('spools', derivedSpools);
+      st.setField('selectedSpool', derivedSpools[0]);
+      st.setField('joints', extractedJoints);
+      st.setField('selectedJoint', extractedJoints[0] ?? '');
+      if (extractedWelders.length > 0) {
+        st.setField('welders', extractedWelders);
+        st.setField('selectedWelder', extractedWelders[0]);
+      }
       showToast(
         `Extracted ${result.mto.length} MTO, ${result.welds.length} Weld Log, ${result.cuts.length} Cut List, ${result.supports.length} Supports`,
       );
@@ -701,19 +737,31 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
     store.setField('activeJointModalEntityId', null);
   };
 
+  const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI?.isElectron);
+  const [creditsOpen, setCreditsOpen] = useState(false);
+
   return (
     <div className="flex h-screen w-screen flex-col bg-[#090d16] text-slate-100 overflow-hidden">
       {/* Top Industrial Header */}
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 bg-[#0b1120] px-3 py-2">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center">
+      <header
+        className={`flex items-center justify-between gap-2 border-b border-slate-800 bg-[#0b1120] px-3 py-2 ${
+          isElectron ? 'flex-nowrap electron-drag-region' : 'flex-wrap'
+        }`}
+      >
+        <div className="flex shrink-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setCreditsOpen(true)}
+            title="Trunçgil Teknoloji"
+            className="flex items-center rounded-md transition-opacity hover:opacity-85 cursor-pointer"
+          >
             <img
               src={theme === 'light' ? '/isocad-logo-light.png' : '/isocad-logo.png'}
               alt="IsoCad Logo"
               className="h-8 w-auto object-contain"
             />
-          </Link>
-          <span className="hidden md:inline font-mono text-xs text-slate-400">
+          </button>
+          <span className="hidden md:inline whitespace-nowrap font-mono text-xs text-slate-400">
             {store.drawingNo} • Rev {store.revisionNo}
           </span>
         </div>
@@ -781,8 +829,14 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
             )}
 
             {toast && (
-              <div className="absolute top-8 left-1/2 -translate-x-1/2 z-40 inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-slate-900/95 px-4 py-1.5 text-xs font-medium text-cyan-200 shadow-xl">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+              <div
+                className={`absolute top-8 left-1/2 -translate-x-1/2 z-40 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium shadow-xl backdrop-blur-md ${
+                  theme === 'light'
+                    ? 'border-sky-300 bg-white/95 text-sky-700'
+                    : 'border-cyan-500/40 bg-slate-900/95 text-cyan-200'
+                }`}
+              >
+                <CheckCircle2 className={`h-3.5 w-3.5 ${theme === 'light' ? 'text-emerald-600' : 'text-emerald-400'}`} />
                 {toast}
               </div>
             )}
@@ -951,6 +1005,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({ isDemo: _isDem
       />
 
       <EndpointConfigModal onExecuteSync={handleExecuteSync} />
+      <CreditsModal isOpen={creditsOpen} onClose={() => setCreditsOpen(false)} />
     </div>
   );
 };

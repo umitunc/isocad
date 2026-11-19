@@ -46,6 +46,7 @@ interface EditorState {
   selectedWelder: string;
   welders: string[];
   spools: string[];
+  joints: string[];
 
   pipingData: PipingExtractionResult | null;
   drawerOpen: boolean;
@@ -91,6 +92,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedWelder: 'W-104',
   welders: ['W-104', 'W-108', 'W-211', 'W-305'],
   spools: ['SP-001', 'SP-002', 'SP-003'],
+  joints: [],
 
   pipingData: null,
   drawerOpen: false,
